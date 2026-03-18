@@ -2,7 +2,10 @@
 
 A harness for running multi-session agent trajectories using the Claude Agent SDK, capturing them in [ATIF](https://harborframework.com/docs/agents/trajectory-format) (Agent Trajectory Interchange Format), and tracking file state changes across sessions.
 
-Built for agent interpretability research — studying how LLM agents behave across multi-turn, multi-session, multi-agent interactions.
+Built for AI alignment and interpretability research — studying how LLM agents behave across multi-turn, multi-session, multi-agent interactions.
+
+!!! note
+    AgentLens currently supports Claude Code via the Claude Agent SDK. Support for additional agents and frameworks is planned — see [Roadmap](guide/roadmap.md). Some features (especially turn-level replay) are experimental. We welcome PRs and contributions — [open an issue](https://github.com/dreadnode/agent-lens/issues) if you run into bugs.
 
 ## What it does
 

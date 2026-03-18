@@ -4,7 +4,9 @@ Developed at [MATS Exploration Phase](https://www.matsprogram.org/) under [Neel 
 
 A harness for running multi-session agent trajectories using the Claude Agent SDK, capturing them in [ATIF](https://harborframework.com/docs/agents/trajectory-format) (Agent Trajectory Interchange Format), and tracking file state changes across sessions.
 
-Built for agent interpretability research — studying how LLM agents behave across multi-turn, multi-session, multi-agent interactions.
+Built for AI alignment and interpretability research — studying how LLM agents behave across multi-turn, multi-session, multi-agent interactions.
+
+> **Note:** AgentLens currently supports Claude Code via the Claude Agent SDK. Support for additional agents and frameworks is planned — see [Roadmap](#roadmap). Some features (especially turn-level replay) are experimental. We welcome PRs and contributions — [open an issue](https://github.com/dreadnode/agent-lens/issues) if you run into bugs.
 
 ## What it does
 
@@ -356,6 +358,8 @@ This finds session 2's `fork_from` target, resolves the session ID to fork from,
 
 ### `harness replay`
 
+> **Experimental.** Turn-level replay with git worktree filesystem reset is new and likely has bugs. If you run into issues, please [open an issue](https://github.com/dreadnode/agent-lens/issues).
+
 Replay a session from any API turn with full tool execution. Each replicate runs in an isolated git worktree, so multiple replicates execute in parallel. Each replay becomes a new independent run with full provenance back to the source.
 
 ```bash
@@ -505,6 +509,17 @@ src/harness/
 ```
 
 The core complexity lives in `atif_adapter.py`: the Claude Agent SDK streams messages (AssistantMessage, UserMessage, SystemMessage, ResultMessage) and the adapter maps them into ATIF steps with correct tool call / observation pairing, thinking block capture, and sequential step IDs.
+
+## Roadmap
+
+- **Multi-agent support** — extend beyond Claude Code to support other agent frameworks and LLM providers (Codex, Devin, custom agents, etc.)
+- **Comparative analysis** — side-by-side trajectory comparison across agents, models, and prompt variants
+- **Richer intervention toolkit** — programmatic intervention pipelines for systematic counterfactual testing
+- **Scoring & evaluation** — built-in trajectory scoring and automated evaluation metrics
+
+## Contributing
+
+We welcome PRs and contributions! Whether it's bug fixes, new features, documentation improvements, or support for additional agent frameworks — all contributions are appreciated.
 
 ## Dependencies
 

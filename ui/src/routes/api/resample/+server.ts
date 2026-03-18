@@ -247,16 +247,14 @@ async function loadRawRequest(dir: string, pad: string) {
 /** GET: load existing resample results + variants */
 export const GET: RequestHandler = async ({ url }) => {
 	const runName = url.searchParams.get("runName");
-	const rawSessionIndex = url.searchParams.get("sessionIndex") || "0";
+	const sessionIndex = parseInt(url.searchParams.get("sessionIndex") || "0");
 	const requestIndex = parseInt(url.searchParams.get("requestIndex") || "0");
 
 	if (!runName || !requestIndex) {
 		return error(400, "Missing runName, sessionIndex, or requestIndex");
 	}
 
-	// Support both plain numbers ("2") and replicate keys ("2_r01")
-	const sessionKey = rawSessionIndex.includes("_") ? rawSessionIndex : parseInt(rawSessionIndex);
-	const dir = sessionDir(runName, sessionKey);
+	const dir = sessionDir(runName, sessionIndex);
 	const pad = String(requestIndex).padStart(3, "0");
 	const resamplesDir = join(dir, "resamples");
 
@@ -354,11 +352,8 @@ export const POST: RequestHandler = async ({ request }) => {
 		return error(500, `${keyName} not configured`);
 	}
 
-	// Force non-streaming
+	// Force non-streaming (keep thinking signatures — the API requires them)
 	requestData.stream = false;
-	// Remove SDK-specific fields that aren't part of the public API
-	delete requestData.context_management;
-	delete requestData.metadata;
 
 	// Determine output directory (always keyed off the original requestIndex)
 	let resampleDir: string;
@@ -370,9 +365,6 @@ export const POST: RequestHandler = async ({ request }) => {
 		for (const edit of variant.edits) {
 			applyEdit(requestData, edit);
 		}
-		// Thinking blocks are read-only in the editor, so signatures stay valid.
-		// If someone manually tampers with thinking via the CLI, the API will
-		// return a clear 400 error.
 
 		// Assign variant ID
 		const vid = await nextVariantId(resamplesDir, pad);

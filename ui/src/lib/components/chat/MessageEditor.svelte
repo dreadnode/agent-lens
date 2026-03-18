@@ -185,8 +185,13 @@
 				{#each msg.content as block, blockIdx}
 					{#if block.type === "thinking"}
 						<div>
-							<div class="text-[9px] text-muted-foreground/50 uppercase tracking-wider mb-0.5">thinking <span class="normal-case text-muted-foreground/40">(read-only — signature-protected)</span></div>
-							<pre class="w-full text-[10px] font-mono bg-muted/10 border border-border/30 rounded px-2 py-1.5 text-muted-foreground/40 italic whitespace-pre-wrap max-h-[120px] overflow-y-auto">{block.thinking || ""}</pre>
+							<div class="text-[9px] text-muted-foreground/70 uppercase tracking-wider mb-0.5">thinking</div>
+							<textarea
+								value={block.thinking || ""}
+								oninput={(e) => handleEdit(absIdx, blockIdx, "thinking", e.currentTarget.value)}
+								class="w-full text-[10px] font-mono bg-muted/20 border border-border/50 rounded px-2 py-1.5 text-muted-foreground italic resize-y min-h-[60px]"
+								rows={highlight ? 6 : 3}
+							></textarea>
 						</div>
 					{:else if isSystemReminder(block)}
 						{@const rKey = `${absIdx}-${blockIdx}`}

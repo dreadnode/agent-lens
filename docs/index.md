@@ -11,7 +11,7 @@ The harness takes a YAML config describing a sequence of sessions (prompts to an
 - **ATIF trajectories** — standardized JSON capturing every agent step, tool call, observation, and thinking block
 - **Shadow git change tracking** — automatic tracking of all file changes via an invisible git repo, with per-step write attribution and full unified diffs
 - **Session chaining** — three modes for controlling how sessions relate to each other (isolated, chained, forked)
-- **Resampling & replay** — four methods for studying behavioral variance, from quick API resampling to full trajectory replay with tool execution. Edit assistant text, tool results, or system prompts to test counterfactuals
+- **Resampling & replay** — four methods for studying behavioral variance, from quick API resampling to full trajectory replay with tool execution. Edit thinking, text, tool results, or prompts to test counterfactuals
 - **Subagent capture** — separate ATIF trajectories for each subagent invocation, linked to the parent via `SubagentTrajectoryRef`
 
 ## Next steps

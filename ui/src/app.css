@@ -145,32 +145,19 @@
 	[id^="step-"] {
 		scroll-margin-top: 4.5rem;
 	}
-	/* Ensure pre/code inside cards inherit foreground color */
-	pre, code {
-		color: inherit;
+	/* Override prose typography to use our theme foreground for better contrast */
+	.prose {
+		--tw-prose-body: var(--foreground);
+		--tw-prose-headings: var(--foreground);
+		--tw-prose-bold: var(--foreground);
+		--tw-prose-code: var(--foreground);
+		--tw-prose-links: var(--foreground);
 	}
-}
-
-/* Override prose typography — outside @layer for higher specificity than the plugin */
-.prose h1, .prose h2, .prose h3, .prose h4, .prose h5, .prose h6 {
-	color: var(--foreground);
-}
-.prose strong, .prose b {
-	color: var(--foreground);
-}
-.prose code {
-	color: var(--foreground);
-}
-.prose a {
-	color: var(--foreground);
-}
-.prose pre {
-	color: var(--foreground);
-	background-color: var(--muted);
-}
-.prose pre code {
-	color: var(--foreground);
-}
-.prose ol > li::marker, .prose ul > li::marker {
-	color: var(--muted-foreground);
+	.dark .prose {
+		--tw-prose-body: var(--foreground);
+		--tw-prose-headings: var(--foreground);
+		--tw-prose-bold: var(--foreground);
+		--tw-prose-code: var(--foreground);
+		--tw-prose-links: var(--foreground);
+	}
 }

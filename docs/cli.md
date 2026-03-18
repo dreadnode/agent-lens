@@ -126,7 +126,7 @@ Results are saved to `session_NN/resamples/request_NNN/` (and `request_NNN_vNN/`
 
 Edit a captured API request and resample with the modified version.
 
-For intervention strategy and output details, see [Resampling & Replay](guide/resampling.md#intervention-testing).
+For intervention strategy and output details, see [Resampling & Replay](guide/resampling.md#intervention-testing-edit-resample).
 
 ```bash
 harness resample-edit <run_dir> [OPTIONS]
@@ -151,9 +151,7 @@ harness resample-edit <run_dir> [OPTIONS]
 harness resample-edit runs/my-run --session 1 --request 5 --dump > edit.json
 ```
 
-**Step 2** — Edit the JSON file (change assistant text, tool results, system prompt, etc.), then resample.
-
-> **Do not edit thinking blocks.** They carry cryptographic signatures validated by the API — any modification will cause a 400 error. See [Thinking blocks](guide/resampling.md#thinking-blocks-not-editable) for details.
+**Step 2** — Edit the JSON file (change thinking, text, tool results, system prompt, etc.), then resample:
 
 ```bash
 harness resample-edit runs/my-run --session 1 --request 5 \
@@ -164,9 +162,9 @@ harness resample-edit runs/my-run --session 1 --request 5 \
 
 ```bash
 harness resample-edit runs/my-run --session 1 --request 5 --dump \
-  | jq '.system = "You are a cautious engineer. Always check for edge cases."' \
+  | jq '.messages[-1].content[0].thinking = "I should be more direct."' \
   | harness resample-edit runs/my-run --session 1 --request 5 \
-      --input - --label "cautious prompt" --count 10
+      --input - --label "direct thinking" --count 10
 ```
 
 ### Batch interventions
@@ -174,9 +172,9 @@ harness resample-edit runs/my-run --session 1 --request 5 --dump \
 ```bash
 for req in 3 5 7 9; do
   harness resample-edit runs/my-run --session 1 --request $req --dump \
-    | jq '(.messages[] | select(.role == "user") | .content[] | select(.type == "tool_result")).content = "Error: file not found"' \
+    | jq '.messages[-1].content[0].thinking = "Skip exploration, go straight to implementation."' \
     | harness resample-edit runs/my-run --session 1 --request $req \
-        --input - --label "tool-error" --count 5
+        --input - --label "skip-exploration" --count 5
 done
 ```
 
@@ -239,20 +237,18 @@ Turns in session 1 (12 total):
 
 ### Replaying
 
-By default, only the targeted session is replayed. Use `--continue-sessions` to also run sessions after it.
-
 ```bash
-# Replay from turn 5, three times (only session 1 runs)
+# Replay from turn 5, three times (runs in parallel)
 harness replay runs/my-run --session 1 --turn 5 --count 3
-
-# Replay session 1 turn 5, then continue with sessions 2, 3, etc.
-harness replay runs/my-run --session 1 --turn 5 --continue-sessions
 
 # Replay with an additional prompt
 harness replay runs/my-run --session 1 --turn 5 --prompt "Try a different approach"
 
 # Replay from turn 1 (re-run from scratch)
 harness replay runs/my-run --session 1 --turn 1 --count 2
+
+# Replay session 1 turn 5, then continue sessions 2..end
+harness replay runs/my-run --session 1 --turn 5 --continue-sessions
 ```
 
 Each replay creates a new run directory (e.g. `replay_my-run_s1_t5_r01_2026-03-16T00-00-00/`) with full artifacts including `replay_meta.json` for provenance tracking. The source working directory is never modified — each replicate operates in its own git worktree.

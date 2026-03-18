@@ -102,21 +102,14 @@ def parse_turns(transcript_path: Path) -> tuple[list[dict], list[Turn]]:
             current_turn.assistant_lines.append(entry)
 
             # Detect content block types
-            content = msg.get("content", [])
-            if isinstance(content, str):
-                # String-form content (no tool_use blocks to detect)
-                pass
-            else:
-                for block in content:
-                    if not isinstance(block, dict):
-                        continue
-                    block_type = block.get("type")
-                    if block_type == "tool_use":
-                        current_turn.has_tool_use = True
-                        current_tool_use_ids.add(block.get("id", ""))
-                        tool_name = block.get("name", "")
-                        if tool_name:
-                            current_turn.tool_names.append(tool_name)
+            for block in msg.get("content", []):
+                block_type = block.get("type")
+                if block_type == "tool_use":
+                    current_turn.has_tool_use = True
+                    current_tool_use_ids.add(block.get("id", ""))
+                    tool_name = block.get("name", "")
+                    if tool_name:
+                        current_turn.tool_names.append(tool_name)
 
         elif entry_type == "user":
             if not seen_first_assistant:
@@ -288,13 +281,7 @@ def list_turns(
         has_thinking = False
         for entry in turn.assistant_lines:
             msg = entry.get("message", {})
-            content = msg.get("content", [])
-            if isinstance(content, str):
-                has_text = True
-                continue
-            for block in content:
-                if not isinstance(block, dict):
-                    continue
+            for block in msg.get("content", []):
                 if block.get("type") == "text":
                     has_text = True
                 elif block.get("type") == "thinking":

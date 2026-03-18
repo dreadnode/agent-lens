@@ -56,6 +56,25 @@ def _load_headers(raw_dumps_dir: Path, request_index: int) -> dict:
     return {}
 
 
+def _clean_thinking_signatures(messages: list) -> list:
+    """Strip thinking block signatures — they're response-specific."""
+    cleaned = []
+    for msg in messages:
+        if isinstance(msg.get("content"), list):
+            cleaned_content = []
+            for block in msg["content"]:
+                if block.get("type") == "thinking":
+                    cleaned_content.append({
+                        "type": "thinking",
+                        "thinking": block.get("thinking", ""),
+                    })
+                else:
+                    cleaned_content.append(block)
+            cleaned.append({**msg, "content": cleaned_content})
+        else:
+            cleaned.append(msg)
+    return cleaned
+
 
 def _build_headers(
     captured_headers: dict[str, str], api_key: str, target_url: str
@@ -126,14 +145,12 @@ async def _call_api(url: str, headers: dict[str, str], request_data: dict) -> di
 
 
 def _prepare_request(
-    request_data: dict,
-    model_override: str | None = None,
+    request_data: dict, model_override: str | None = None
 ) -> dict:
     """Apply standard modifications to a request before resampling."""
     request_data["stream"] = False
-    # Remove SDK-specific fields that aren't part of the public API
-    for key in ("context_management", "metadata"):
-        request_data.pop(key, None)
+    if isinstance(request_data.get("messages"), list):
+        request_data["messages"] = _clean_thinking_signatures(request_data["messages"])
     if model_override:
         request_data["model"] = model_override
     return request_data
@@ -230,13 +247,7 @@ def dump_request(
     request_index: int,
     replicate: int | None = None,
 ) -> dict:
-    """Load and prepare a request for editing. Returns the request data.
-
-    Thinking blocks are preserved in the dump so researchers can read them
-    for context. They are stripped automatically at send time (variant
-    resampling) since the API requires cryptographic signatures that can't
-    survive edits.
-    """
+    """Load and prepare a request for editing. Returns the request data."""
     session_dir = resolve_session_dir(run_dir, session_index, replicate)
     raw_dumps_dir = session_dir / "raw_dumps"
     request_data = _load_request(raw_dumps_dir, request_index)
@@ -361,9 +372,7 @@ async def run_variant_resample(
     # Resolve API config from the original request headers
     target_url, captured_headers = _resolve_api_config(raw_dumps_dir, request_index)
 
-    # Clean up edited request for API compatibility
-    for key in ("context_management", "metadata"):
-        edited_request.pop(key, None)
+    # Apply model override to the edited request
     if model_override:
         edited_request["model"] = model_override
     edited_request["stream"] = False

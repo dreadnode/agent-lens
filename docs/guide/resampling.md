@@ -25,7 +25,7 @@ Cheapest / fastest                                    Most thorough
 | I want to... | Method | Command |
 |--------------|--------|---------|
 | Check if the model would say the same thing again | [Turn resample](#turn-level-resampling) | `harness resample` |
-| See what happens if the model had seen different text or tool results | [Intervention](#intervention-testing) | `harness resample-edit` |
+| See what happens if the model had different thinking | [Intervention](#intervention-testing) | `harness resample-edit` |
 | See what happens if a tool returned something different | [Intervention](#intervention-testing) | `harness resample-edit` |
 | Compare N complete trajectories for the same task | [Session resample](#session-level-resampling) | `harness resample-session` |
 | Branch from a specific point and let the agent continue | [Turn replay](#turn-level-replay) | `harness replay` |
@@ -87,17 +87,16 @@ session_01/resamples/request_005/
 
 ## Intervention testing
 
-Edit the conversation inputs — text, tool results, or system prompt — then resample. This lets you test counterfactuals: "What would the model do differently if it had seen X instead of Y?"
+Edit the conversation inputs — thinking blocks, text, tool results, or system prompt — then resample. This lets you test counterfactuals: "What would the model do differently if it had seen X instead of Y?"
 
 Like turn-level resampling, this is **stateless** — no tools execute. But the input is modified before sending, so you can study causal effects.
 
 **What you can edit:**
 
-- **Assistant text** — alter what the model said in prior turns (e.g., remove hedging, change a decision)
-- **Tool results** — change what a tool returned (e.g., different file contents, simulated errors)
+- **Thinking blocks** — change the model's internal reasoning
+- **Text responses** — alter what the model said in prior turns
+- **Tool results** — change what a tool returned (e.g., different file contents)
 - **System prompt** — modify instructions
-
-> **Note:** Thinking blocks are visible in the dump and UI but are **not editable** — the API requires cryptographic signatures on thinking blocks that can't survive modification. They are preserved as-is so the model retains its original reasoning context. See [Thinking blocks](#thinking-blocks) for details.
 
 ### From the CLI
 
@@ -107,7 +106,7 @@ Two-step workflow: dump the request, edit it, resample.
 # 1. Dump the request to a file
 harness resample-edit runs/my-run --session 1 --request 5 --dump > edit.json
 
-# 2. Edit edit.json (change assistant text, tool results, system prompt...)
+# 2. Edit edit.json (change thinking, text, tool results, system prompt...)
 
 # 3. Resample with the modified request
 harness resample-edit runs/my-run --session 1 --request 5 \
@@ -117,22 +116,20 @@ harness resample-edit runs/my-run --session 1 --request 5 \
 For scriptable interventions, pipe through `jq`:
 
 ```bash
-# Change the system prompt
 harness resample-edit runs/my-run --session 1 --request 5 --dump \
-  | jq '.system = "You are a cautious engineer. Always check for edge cases."' \
+  | jq '.messages[-1].content[0].thinking = "Be more direct."' \
   | harness resample-edit runs/my-run --session 1 --request 5 \
-      --input - --label "cautious prompt" --count 10
+      --input - --label "direct thinking" --count 10
 ```
 
 Batch across multiple requests:
 
 ```bash
-# Change a tool result across several turns
 for req in 3 5 7 9; do
   harness resample-edit runs/my-run --session 1 --request $req --dump \
-    | jq '(.messages[] | select(.role == "user") | .content[] | select(.type == "tool_result")).content = "Error: file not found"' \
+    | jq '.messages[-1].content[0].thinking = "Skip exploration."' \
     | harness resample-edit runs/my-run --session 1 --request $req \
-        --input - --label "tool-error" --count 5
+        --input - --label "skip-exploration" --count 5
 done
 ```
 
@@ -140,7 +137,7 @@ done
 
 1. Open a session's API captures
 2. Click "Edit & Resample" on any request
-3. Modify text, tool results, or system prompts (thinking blocks are shown read-only)
+3. Modify thinking blocks, text, tool results, or system prompts
 4. Resample with the modified input
 
 ### Output
@@ -214,23 +211,21 @@ Bracketed tags (e.g. `[_step_1_3]`) indicate shadow git snapshots — turns wher
 
 ### Running
 
-By default, replay **only runs the targeted session** — it branches from the specified turn and lets the agent continue until that session ends. Subsequent sessions from the original config are not run.
-
-To replay the full remaining experiment (the targeted session *and* all sessions after it), use `--continue-sessions`.
-
 ```bash
-# Replay from turn 5, three times (only session 1 runs)
+# Replay from turn 5, three times (runs in parallel)
 harness replay runs/my-run --session 1 --turn 5 --count 3
-
-# Replay session 1 turn 5, then continue with sessions 2, 3, etc.
-harness replay runs/my-run --session 1 --turn 5 --continue-sessions
 
 # Replay with an additional prompt after tool results
 harness replay runs/my-run --session 1 --turn 5 --prompt "Try a different approach"
 
 # Replay from turn 1 (re-run from scratch with same config)
 harness replay runs/my-run --session 1 --turn 1 --count 2
+
+# Replay session 1 turn 5, then continue with sessions 2..end
+harness replay runs/my-run --session 1 --turn 5 --continue-sessions
 ```
+
+When `--continue-sessions` is enabled, each replicate runs the replayed session first, then continues with sessions `N+1..end` from the original config.
 
 ### Output
 
@@ -258,28 +253,6 @@ runs/replay_my-run_s1_t5_r01_2026-03-16T00-00-00/
 
 Each session generates a `uuid_map.json` that correlates entries across the three data formats (transcript, ATIF trajectory, raw API dumps). The primary join key is `tool_call_id`. The replay system uses this to find shadow git tags for filesystem reset.
 
-### Thinking blocks (not editable)
+### Thinking signatures
 
-> **Warning:** Thinking blocks cannot be edited in interventions. Any attempt to modify thinking content in a dumped request JSON will cause the API to reject the request with a 400 error. The UI editor shows thinking blocks as read-only.
-
-#### Why: cryptographic signatures
-
-When the Anthropic API returns a response with extended thinking enabled, each `thinking` block includes a cryptographic `signature` field. On subsequent requests, the API validates this signature to confirm the thinking content has not been tampered with. This is a server-side integrity check — there is no way to regenerate or forge a valid signature outside of Anthropic's infrastructure.
-
-This means:
-- **Unmodified thinking blocks** have valid signatures and are accepted by the API
-- **Edited thinking blocks** have invalidated signatures and are rejected (HTTP 400)
-- **Stripped signatures** (keeping the text but removing the `signature` field) are also rejected
-
-`redacted_thinking` blocks are similarly protected — they contain opaque encrypted content that cannot be inspected or modified.
-
-#### What this means for interventions
-
-All resampling methods preserve thinking blocks with their original signatures intact, so the model always sees its full original reasoning context. This is faithful — the model receives the same thinking it originally produced.
-
-To test counterfactuals about model behavior, edit the fields that *are* modifiable:
-- **Assistant text** — change what the model said (its visible output)
-- **Tool results** — change what a tool returned (e.g., different file contents, simulated errors)
-- **System prompt** — change the instructions
-
-These fields have no signature requirements and can be freely modified.
+When resampling, the harness automatically strips thinking block signatures from the request. Signatures are response-specific and would cause errors if replayed verbatim.

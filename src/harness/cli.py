@@ -72,10 +72,7 @@ def list_runs(
             typer.echo("No runs directory found.")
         raise typer.Exit()
 
-    run_dirs = sorted(
-        d for d in runs_dir.iterdir()
-        if d.is_dir() and not d.name.startswith(("_", "."))
-    )
+    run_dirs = sorted(runs_dir.iterdir())
     if not run_dirs:
         if output_json:
             typer.echo("[]")

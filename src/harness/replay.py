@@ -131,6 +131,9 @@ async def run_replay(
         typer.echo(f"Error: No session config for index {session_index}", err=True)
         raise typer.Exit(1)
 
+    # Resolve paths
+    project_dir = get_project_dir(str(Path(config.work_dir).resolve()))
+
     # Source shadow git for worktree creation
     source_shadow_git_dir = source_run_dir / ".shadow_git"
     if not source_shadow_git_dir.exists():
@@ -157,7 +160,7 @@ async def run_replay(
     )
 
     # Create worktrees for all replicates
-    worktree_base = output_base / "_worktrees" / f"replay_{source_name}_s{session_index}_t{turn_index}"
+    worktree_base = output_base / ".worktrees" / f"replay_{source_name}_s{session_index}_t{turn_index}"
     worktree_base.mkdir(parents=True, exist_ok=True)
     worktree_paths: list[Path] = []
 
@@ -183,6 +186,7 @@ async def run_replay(
                 tool_result_entries=tool_result_entries,
                 source_session_id=source_session_id,
                 prompt_override=prompt_override,
+                project_dir=project_dir,
                 output_base=output_base,
                 reset_tag=reset_tag,
                 continue_sessions=continue_sessions,
@@ -200,11 +204,6 @@ async def run_replay(
             except Exception:
                 logger.warning("Failed to remove worktree: %s", wt)
         shutil.rmtree(worktree_base, ignore_errors=True)
-        # Clean up _worktrees parent if empty
-        try:
-            worktree_base.parent.rmdir()
-        except OSError:
-            pass  # not empty or already gone
 
     # Process results
     new_dirs: list[Path] = []
@@ -251,6 +250,7 @@ async def _run_single_replicate(
     tool_result_entries: list[dict],
     source_session_id: str,
     prompt_override: str | None,
+    project_dir: Path,
     output_base: Path,
     reset_tag: str,
     continue_sessions: bool,
@@ -268,11 +268,9 @@ async def _run_single_replicate(
     replay_run_dir = output_base / run_name
     replay_run_dir.mkdir(parents=True)
 
-    # Write truncated transcript to Claude's project dir for the worktree path
-    # (SDK computes project hash from cwd, which is the worktree, not original work_dir)
-    worktree_project_dir = get_project_dir(str(worktree_dir.resolve()))
+    # Write truncated transcript to Claude's project dir
     truncated_path = write_truncated_transcript(
-        truncated_entries, new_session_id, worktree_project_dir
+        truncated_entries, new_session_id, project_dir
     )
 
     # Save a copy in the replay run for reference
@@ -293,11 +291,7 @@ async def _run_single_replicate(
     # Build AsyncIterable prompt
     prompt: str | AsyncIterable[dict[str, Any]]
     if turn_index == 1:
-        # Replay from scratch — use original prompt, optionally with override appended
-        if prompt_override:
-            prompt = f"{session_config.prompt}\n\n{prompt_override}"
-        else:
-            prompt = session_config.prompt
+        prompt = session_config.prompt
         resume_id = None
     else:
         prompt = _build_replay_prompt(tool_result_entries, prompt_override)
@@ -333,6 +327,7 @@ async def _run_single_replicate(
     # Optionally continue with remaining sessions from config
     results: list[SessionResult] = [result]
     session_ids: dict[int, str | None] = {session_index: result.session_id}
+    fork_counts: dict[int | None, int] = {}
 
     if continue_sessions:
         for sc in sorted(config.sessions, key=lambda s: s.session_index):
@@ -372,16 +367,16 @@ async def _run_single_replicate(
                     resume_id = session_ids[1]
                     fork = True
 
-                # Determine if working dir reset is needed for this fork.
-                # In replay context, we always reset for forked sessions because
-                # the replayed session (or prior continuation sessions) will have
-                # mutated the worktree since the fork point's clean state.
+                # Determine if working dir reset is needed for this fork
                 effective_fork_from = fork_from
                 if effective_fork_from is None and config.session_mode.value == "forked":
                     effective_fork_from = 1
                 needs_reset = False
                 if fork or config.session_mode.value == "forked":
-                    needs_reset = True
+                    fork_key = effective_fork_from
+                    fork_counts[fork_key] = fork_counts.get(fork_key, 0) + 1
+                    if fork_counts[fork_key] > 1 or rep_idx > 1:
+                        needs_reset = True
 
                 replay_shadow_git.begin_session(
                     sc.session_index,

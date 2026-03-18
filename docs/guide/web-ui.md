@@ -22,7 +22,7 @@ Configure the UI via `ui/.env` or shell environment:
 | `ANTHROPIC_API_KEY` | — | Required for resampling via Anthropic API |
 | `ANTHROPIC_BASE_URL` | `https://api.anthropic.com` | Override the API base URL for resampling |
 
-The resampling API keys are needed for any resampling in the UI (both vanilla resamples and "Edit & Resample"). The UI auto-detects whether to use OpenRouter or Anthropic based on the original run's API target.
+The resampling API keys are only needed if you use the "Edit & Resample" feature in the UI. The UI auto-detects whether to use OpenRouter or Anthropic based on the original run's API target.
 
 ## Features
 
@@ -62,7 +62,7 @@ Compare N resample outputs for a given API turn side-by-side.
 ### Edit & Resample
 Interactive message editor for intervention testing:
 
-1. Edit assistant text, tool results, or system prompts (thinking blocks are shown read-only)
+1. Edit thinking blocks, text, tool results, or system prompts
 2. Resample with the modified input
 3. Compare original vs. variant responses
 

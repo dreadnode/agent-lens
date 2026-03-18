@@ -13,8 +13,6 @@ runs/<run_name>/
 │
 ├── session_01/
 │   ├── trajectory.json         # ATIF v1.6 trajectory (parent)
-│   ├── transcript.jsonl        # Claude Code transcript (for replay)
-│   ├── uuid_map.json           # turn correlation map (transcript ↔ ATIF ↔ raw dumps)
 │   ├── session_diff.patch      # unified diff of this session's changes
 │   ├── subagent_<name>_<id>.json  # subagent ATIF trajectory (if any)
 │   ├── api_captures.jsonl      # API request/response metadata

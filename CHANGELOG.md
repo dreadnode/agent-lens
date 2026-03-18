@@ -20,7 +20,7 @@ Initial release.
 - **Subagent capture** — separate ATIF trajectories for each subagent invocation, linked to parent via `SubagentTrajectoryRef`
 - **API request capture** — local reverse proxy captures raw request/response bodies, system prompts, tool definitions, token usage, and compaction events
 - **Turn-level resampling** — replay a specific API request N times to study response variance (stateless, no tool execution)
-- **Intervention testing** — edit captured API requests (assistant text, tool results, system prompt) and resample with modified inputs; available from both CLI (`harness resample-edit`) and web UI
+- **Intervention testing** — edit captured API requests (thinking, text, tool results, system prompt) and resample with modified inputs; available from both CLI (`harness resample-edit`) and web UI
 - **Session-level resampling** — re-run a forked session N times with full tool execution (`harness resample-session`)
 - **Turn-level replay** — branch execution from any API turn with exact-match context, filesystem reset via git worktrees, and full tool execution; replicates run in parallel (`harness replay`)
 - **Transcript capture** — Claude Code transcript JSONL copied into session output for replay support

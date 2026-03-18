@@ -1,4 +1,4 @@
-model: "claude-sonnet-4-20250514"
+model: "claude-sonnet-4-5"
 provider: anthropic
 work_dir: "./repos/test_repo"
 session_mode: isolated

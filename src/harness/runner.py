@@ -90,7 +90,7 @@ async def run_session(
     max_turns = session_config.max_turns or run_config.max_turns
 
     # Inject working directory and memory file hint
-    cwd = str(Path(cwd_override).resolve()) if cwd_override else str(Path(run_config.work_dir).resolve())
+    cwd = cwd_override or str(Path(run_config.work_dir).resolve())
     memory_path = Path(cwd) / run_config.memory_file
     file_hint = (
         f"\n\nYour working directory is {cwd}\n"

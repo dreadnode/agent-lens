@@ -46,18 +46,4 @@ export interface RunMeta {
 	total_compaction_events: number;
 	total_subagent_invocations: number;
 	errors: string[];
-	/** Present on replay runs — name of the immediate source run */
-	replay_source?: string;
-	/** Present on replay runs — turn index that was replayed from */
-	replay_turn?: number;
-	/** Number of resample samples across all sessions (computed at load time) */
-	resample_count?: number;
-	/** Number of resample variants across all sessions (computed at load time) */
-	variant_count?: number;
-}
-
-/** A run with its replay children grouped together. */
-export interface RunGroup {
-	run: RunMeta;
-	replays: RunMeta[];
 }

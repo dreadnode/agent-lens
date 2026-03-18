@@ -73,7 +73,7 @@ A full-fidelity re-execution from a specific turn. Each replicate runs in an iso
 
 ### Intervention (variant)
 
-A modified resample — the API request is edited before being sent (e.g. changing assistant text, tool results, or system prompt) to test counterfactuals. Thinking blocks cannot be edited due to cryptographic signature requirements. Variants are saved alongside vanilla resamples with a `_vNN` suffix and include the edited request for reproducibility.
+A modified resample — the API request is edited before being sent (e.g. changing a thinking block or system prompt) to test counterfactuals. Variants are saved alongside vanilla resamples with a `_vNN` suffix and include the edited request for reproducibility.
 
 ### Shadow git
 

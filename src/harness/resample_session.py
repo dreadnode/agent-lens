@@ -144,13 +144,9 @@ async def run_resample_session(
     with open(meta_path) as f:
         meta = json.load(f)
 
-    # Determine fork_from session_id and worktree reset tag
+    # Determine fork_from session_id
     fork_from = session_config.fork_from
     resume_id: str | None = None
-
-    # Handle session_mode: forked (implicit fork from session 1)
-    if fork_from is None and config.session_mode.value == "forked" and session_index > 1:
-        fork_from = 1
 
     if fork_from is not None:
         for s in meta["sessions"]:
@@ -169,9 +165,6 @@ async def run_resample_session(
             "Running isolated replicates.",
             err=True,
         )
-
-    # Worktree tag: use the fork point's end state, not baseline
-    worktree_ref = f"session_{fork_from:02d}" if fork_from is not None else "baseline"
 
     # Find next replicate number
     existing = _find_existing_replicates(run_dir, session_index)
@@ -199,7 +192,7 @@ async def run_resample_session(
     )
 
     # Create worktrees for all replicates
-    worktree_base = run_dir / "_worktrees" / f"resample_s{session_index}"
+    worktree_base = run_dir / ".worktrees" / f"resample_s{session_index}"
     worktree_base.mkdir(parents=True, exist_ok=True)
     worktree_paths: list[Path] = []
 
@@ -207,7 +200,7 @@ async def run_resample_session(
         for i in range(count):
             rep = next_num + i
             wt = worktree_base / f"rep_{rep:02d}"
-            source_shadow_git.add_worktree(wt, worktree_ref)
+            source_shadow_git.add_worktree(wt, "baseline")
             worktree_paths.append(wt)
 
         # Launch all replicates in parallel
@@ -236,11 +229,6 @@ async def run_resample_session(
             except Exception:
                 logger.warning("Failed to remove worktree: %s", wt)
         shutil.rmtree(worktree_base, ignore_errors=True)
-        # Clean up _worktrees parent if empty
-        try:
-            worktree_base.parent.rmdir()
-        except OSError:
-            pass  # not empty or already gone
 
     # Process results
     new_dirs: list[Path] = []

@@ -1,6 +1,6 @@
 # AgentLens
 
-Developed at [MATS Exploration Phase](https://www.matsprogram.org/) under [Neel Nanda](https://github.com/neelnanda-io), for a research project with [Greg Kocher](https://github.com/gregkocher).
+> **This repository has moved to [dreadnode/agent-lens](https://github.com/dreadnode/agent-lens).** This copy is no longer maintained — please use the new location for the latest code, issues, and contributions.
 
 A harness for running multi-session agent trajectories using the Claude Agent SDK, capturing them in [ATIF](https://harborframework.com/docs/agents/trajectory-format) (Agent Trajectory Interchange Format), and tracking file state changes across sessions.
 
@@ -13,7 +13,7 @@ The harness takes a YAML config describing a sequence of sessions (prompts to an
 - **ATIF trajectories** — standardized JSON capturing every agent step, tool call, observation, and thinking block
 - **Shadow git change tracking** — automatic tracking of all file changes via an invisible git repo, with per-step write attribution and full unified diffs
 - **Session chaining** — three modes for controlling how sessions relate to each other (isolated, chained, forked)
-- **Resampling & replay** — study behavioral variance at multiple levels: stateless API resampling, intervention testing (edit assistant text, tool results, or system prompts and resample), session-level resampling, and turn-level replay with full tool execution from any branch point
+- **Resampling & replay** — study behavioral variance at multiple levels: stateless API resampling, intervention testing (edit inputs and resample), session-level resampling, and turn-level replay with full tool execution from any branch point
 - **Subagent capture** — separate ATIF trajectories for each subagent invocation, linked to the parent via `SubagentTrajectoryRef`
 
 ## Install
@@ -325,7 +325,7 @@ Edit a captured API request and resample with the modified version — the CLI e
 # Step 1: Dump the request for editing
 harness resample-edit runs/my-run --session 1 --request 5 --dump > edit.json
 
-# Step 2: Edit the JSON (assistant text, tool results, system prompt...)
+# Step 2: Edit the JSON (thinking, text, tool results, system prompt...)
 # Step 3: Resample with the modified request
 harness resample-edit runs/my-run --session 1 --request 5 \
   --input edit.json --label "removed hedging" --count 5
@@ -335,12 +335,10 @@ Pipe through `jq` for programmatic edits:
 
 ```bash
 harness resample-edit runs/my-run --session 1 --request 5 --dump \
-  | jq '.system = "You are a cautious engineer. Double-check everything."' \
+  | jq '.messages[-1].content[0].thinking = "Be more direct."' \
   | harness resample-edit runs/my-run --session 1 --request 5 \
-      --input - --label "cautious prompt" --count 10
+      --input - --label "direct thinking" --count 10
 ```
-
-> **Note:** Thinking blocks cannot be edited — they carry cryptographic signatures validated by the API. See [Thinking blocks](docs/guide/resampling.md#thinking-blocks-not-editable) for details.
 
 Variants are saved alongside vanilla resamples and appear in the web UI.
 
@@ -362,17 +360,12 @@ Replay a session from any API turn with full tool execution. Each replicate runs
 # List available turns
 harness replay runs/my-run --session 1 --list-turns
 
-# Replay from turn 5, three times (only session 1 runs)
+# Replay from turn 5, three times (runs in parallel)
 harness replay runs/my-run --session 1 --turn 5 --count 3
-
-# Replay session 1 turn 5, then continue with sessions 2, 3, etc.
-harness replay runs/my-run --session 1 --turn 5 --continue-sessions
 
 # Replay with an additional prompt after tool results
 harness replay runs/my-run --session 1 --turn 5 --prompt "Try a different approach"
 ```
-
-By default, replay only runs the targeted session. Use `--continue-sessions` to also run subsequent sessions from the original config.
 
 Replay creates new run directories (e.g. `replay_my-run_s1_t5_r01_<timestamp>/`) with full artifacts. Each includes a `replay_meta.json` with provenance linking back to the source run, session, and turn. The source working directory is never modified.
 
@@ -395,7 +388,7 @@ Open `http://localhost:5173`. The UI reads from the `runs/` directory and provid
 - **API captures** — request/response viewer with token usage, system prompts, tool definitions, compaction events
 - **Subagent viewer** — separate trajectory view for each subagent, with task prompt and return value
 - **Resamples** — compare N resample outputs for a given API turn
-- **Edit & Resample** — interactive message editor for intervention testing: edit assistant text, tool results, or system prompts in the conversation, then resample with the modified input to study how changes affect behavior (thinking blocks are shown read-only — see [why](docs/guide/resampling.md#thinking-blocks-not-editable))
+- **Edit & Resample** — interactive message editor for intervention testing: edit thinking, text, tool results, or system prompts in the conversation, then resample with the modified input to study how changes affect behavior
 - **Changelog** — per-step file write log across all sessions with expandable diffs
 - **Config viewer** — frozen YAML config from the run
 - **Analysis** — rendered markdown from `analysis.md`

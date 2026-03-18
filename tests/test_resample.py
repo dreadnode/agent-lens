@@ -9,6 +9,7 @@ import pytest
 
 from harness.resample import (
     _build_headers,
+    _clean_thinking_signatures,
     _next_variant_id,
     _prepare_request,
     dump_request,
@@ -90,8 +91,7 @@ class TestPrepareRequest:
         result = _prepare_request(req)
         assert result["stream"] is False
 
-    def test_preserves_thinking_signatures(self):
-        """Thinking blocks are preserved as-is (signatures required by API)."""
+    def test_cleans_thinking_signatures(self):
         req = {
             "model": "test",
             "messages": [
@@ -101,7 +101,7 @@ class TestPrepareRequest:
             ],
         }
         result = _prepare_request(req)
-        assert result["messages"][0]["content"][0]["signature"] == "s"
+        assert "signature" not in result["messages"][0]["content"][0]
 
     def test_model_override(self):
         req = {"model": "old", "stream": True}
@@ -130,13 +130,12 @@ class TestDumpRequest:
         req = dump_request(tmp_path, 2, 1, replicate=1)
         assert req["model"] == "claude-test"
 
-    def test_dump_preserves_signatures(self, tmp_path: Path):
-        """Thinking block signatures are preserved (required by API)."""
+    def test_dump_cleans_signatures(self, tmp_path: Path):
         _make_session(tmp_path, 1)
         req = dump_request(tmp_path, 1, 2)  # request 2 has thinking blocks
         assistant_msg = req["messages"][1]
         thinking_block = assistant_msg["content"][0]
-        assert thinking_block["signature"] == "sig1"
+        assert "signature" not in thinking_block
 
 
 # ---------------------------------------------------------------------------
@@ -202,7 +201,73 @@ class TestNextVariantId:
 
 
 # ---------------------------------------------------------------------------
-# _build_headers
+# _clean_thinking_signatures (kept from original)
+# ---------------------------------------------------------------------------
+
+class TestCleanThinkingSignatures:
+    def test_strips_signatures(self):
+        messages = [
+            {
+                "role": "assistant",
+                "content": [
+                    {
+                        "type": "thinking",
+                        "thinking": "Let me think...",
+                        "signature": "abc123",
+                    },
+                    {"type": "text", "text": "Here's my answer"},
+                ],
+            }
+        ]
+        cleaned = _clean_thinking_signatures(messages)
+        thinking_block = cleaned[0]["content"][0]
+
+        assert thinking_block["type"] == "thinking"
+        assert thinking_block["thinking"] == "Let me think..."
+        assert "signature" not in thinking_block
+
+    def test_preserves_non_thinking_blocks(self):
+        messages = [
+            {
+                "role": "assistant",
+                "content": [
+                    {"type": "text", "text": "hello"},
+                    {"type": "tool_use", "id": "tc1", "name": "Read", "input": {}},
+                ],
+            }
+        ]
+        cleaned = _clean_thinking_signatures(messages)
+        assert cleaned[0]["content"][0] == {"type": "text", "text": "hello"}
+        assert cleaned[0]["content"][1]["type"] == "tool_use"
+
+    def test_handles_string_content(self):
+        messages = [{"role": "user", "content": "Hello!"}]
+        cleaned = _clean_thinking_signatures(messages)
+        assert cleaned == messages
+
+    def test_handles_empty_messages(self):
+        assert _clean_thinking_signatures([]) == []
+
+    def test_multiple_thinking_blocks(self):
+        messages = [
+            {
+                "role": "assistant",
+                "content": [
+                    {"type": "thinking", "thinking": "thought 1", "signature": "s1"},
+                    {"type": "text", "text": "answer"},
+                    {"type": "thinking", "thinking": "thought 2", "signature": "s2"},
+                ],
+            }
+        ]
+        cleaned = _clean_thinking_signatures(messages)
+        assert "signature" not in cleaned[0]["content"][0]
+        assert "signature" not in cleaned[0]["content"][2]
+        assert cleaned[0]["content"][0]["thinking"] == "thought 1"
+        assert cleaned[0]["content"][2]["thinking"] == "thought 2"
+
+
+# ---------------------------------------------------------------------------
+# _build_headers (kept from original)
 # ---------------------------------------------------------------------------
 
 class TestBuildHeaders:

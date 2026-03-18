@@ -1,6 +1,6 @@
 # AgentLens
 
-Harness for running multi-session Claude Code experiments and capturing trajectories in ATIF format. Built for agent interpretability research.
+Harness for running multi-session Claude Code experiments and capturing trajectories in ATIF format. Built for AI alignment and interpretability research.
 
 ## Project structure
 

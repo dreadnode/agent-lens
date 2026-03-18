@@ -180,6 +180,9 @@ Each replicate runs in its own git worktree, so all 5 execute in parallel. New d
 !!! warning "Experimental"
     Turn-level replay with git worktree filesystem reset is new and likely has bugs. If you run into issues, please [open an issue](https://github.com/dreadnode/agent-lens/issues).
 
+!!! note "Limitation"
+    Replay resets the filesystem to the target turn's state via git worktrees, but cannot undo side effects outside the working directory — network requests, shell commands that modify external state, environment changes, etc. Replay works best with file-focused workflows where the agent primarily reads and writes files.
+
 Branch execution from any API turn with **full tool execution** and filesystem reset. This is the highest-fidelity method — the agent sees the exact same conversation context and filesystem state up to the branch point, then generates a fresh response that may diverge.
 
 **What you get:** A new independent run where the agent resumed from a specific point. The agent can take completely different actions from that point forward, using real tools on a real filesystem.

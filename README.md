@@ -365,6 +365,8 @@ This finds session 2's `fork_from` target, resolves the session ID to fork from,
 ### `harness replay`
 
 > **Experimental.** Turn-level replay with git worktree filesystem reset is new and likely has bugs. If you run into issues, please [open an issue](https://github.com/dreadnode/agent-lens/issues).
+>
+> **Limitation:** Replay resets the filesystem to the target turn's state, but cannot undo side effects outside the working directory (e.g. network requests, shell commands, environment changes). It works best with file-focused workflows.
 
 Replay a session from any API turn with full tool execution. Each replicate runs in an isolated git worktree, so multiple replicates execute in parallel. Each replay becomes a new independent run with full provenance back to the source.
 

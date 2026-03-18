@@ -119,7 +119,7 @@ async def run_replay(
             uuid_map = json.load(f)
 
     # Determine filesystem reset tag
-    reset_tag = _determine_reset_tag(uuid_map, turn_index)
+    reset_tag = _determine_reset_tag(uuid_map, turn_index, session_index)
 
     # Find session config
     session_config = None
@@ -522,16 +522,27 @@ def _find_session_dir(run_dir: Path, session_index: int) -> Path | None:
     return None
 
 
-def _determine_reset_tag(uuid_map: dict | None, turn_index: int) -> str:
+def _determine_reset_tag(
+    uuid_map: dict | None,
+    turn_index: int,
+    session_index: int = 1,
+) -> str:
     """Find the shadow git tag to reset to for replaying from a given turn.
 
     Walks backwards from turn N-1 to find the most recent turn with a
     shadow git tag (i.e., a turn that produced file writes).
+
+    For sessions > 1, falls back to the prior session's end-state tag
+    instead of baseline, since prior sessions may have modified files.
     """
     if turn_index <= 1:
+        if session_index > 1:
+            return f"session_{session_index - 1:02d}"
         return "baseline"
 
     if not uuid_map:
+        if session_index > 1:
+            return f"session_{session_index - 1:02d}"
         return "baseline"
 
     turns = uuid_map.get("turns", [])
@@ -541,6 +552,10 @@ def _determine_reset_tag(uuid_map: dict | None, turn_index: int) -> str:
         if tag:
             return tag
 
+    # No file writes in this session before the target turn —
+    # fall back to prior session's end state or baseline
+    if session_index > 1:
+        return f"session_{session_index - 1:02d}"
     return "baseline"
 
 

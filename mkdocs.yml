@@ -66,6 +66,7 @@ nav:
       - Web UI: guide/web-ui.md
       - Roadmap: guide/roadmap.md
   - CLI Reference: cli.md
+  - Changelog: changelog.md
   - Glossary: glossary.md
   - API Reference:
       - Config: api/config.md

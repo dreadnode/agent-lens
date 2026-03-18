@@ -9,3 +9,4 @@ dist/
 *.egg-info/
 .ruff_cache/
 site/
+.DS_Store

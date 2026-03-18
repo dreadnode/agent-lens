@@ -72,6 +72,40 @@ class TestDetermineResetTag:
         # Replaying from turn 4 → should get _step_1_5 (most recent)
         assert _determine_reset_tag(uuid_map, 4) == "_step_1_5"
 
+    def test_session_gt_1_no_tags_falls_back_to_prior_session(self):
+        uuid_map = {
+            "turns": [
+                {"turn_index": 1},
+                {"turn_index": 2},
+            ]
+        }
+        # Session 3, no tags in this session → fall back to session_02
+        assert _determine_reset_tag(uuid_map, 2, session_index=3) == "session_02"
+
+    def test_session_gt_1_turn_1_falls_back_to_prior_session(self):
+        # Session 2, turn 1 → fall back to session_01
+        assert _determine_reset_tag(None, 1, session_index=2) == "session_01"
+
+    def test_session_gt_1_with_tag_uses_tag(self):
+        uuid_map = {
+            "turns": [
+                {"turn_index": 1, "shadow_git_tag": "_step_3_1"},
+                {"turn_index": 2},
+            ]
+        }
+        # Session 3 has a tag at turn 1 → use it, not the session fallback
+        assert _determine_reset_tag(uuid_map, 2, session_index=3) == "_step_3_1"
+
+    def test_session_1_no_tags_falls_back_to_baseline(self):
+        uuid_map = {
+            "turns": [
+                {"turn_index": 1},
+                {"turn_index": 2},
+            ]
+        }
+        # Session 1, no tags → baseline (original behavior)
+        assert _determine_reset_tag(uuid_map, 2, session_index=1) == "baseline"
+
 
 # ---------------------------------------------------------------------------
 # Worktree filesystem reset to correct turn state

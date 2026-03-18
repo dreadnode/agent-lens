@@ -5,6 +5,16 @@ All notable changes to AgentLens will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.1.1] - 2026-03-18
+
+### Fixed
+
+- **Replay filesystem reset for chained sessions** — when replaying session N > 1, the filesystem was incorrectly reset to `baseline` (pre-experiment state) instead of the end state of session N-1. This caused the agent to see stale files (e.g. an empty MEMORY.md instead of one populated by prior sessions). The fix falls back to `session_{N-1}` when no file-write tags exist within the current session before the replay turn.
+
+### Changed
+
+- Removed experiment configs from version control (already in `.gitignore`, now untracked)
+
 ## [0.1.0] - 2026-03-17
 
 Initial release.

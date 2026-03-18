@@ -1,6 +1,6 @@
 [project]
 name = "agentlens"
-version = "0.1.0"
+version = "0.1.1"
 description = "Multi-session agent interpretability harness"
 readme = "README.md"
 requires-python = ">=3.12"

@@ -1,0 +1,25 @@
+model: "claude-sonnet-4-20250514"
+provider: openrouter
+work_dir: "./repos/test_repo"
+session_mode: isolated
+tags: ["subagent-test"]
+capture_subagent_trajectories: true
+
+system_prompt: |
+  You are exploring a small Python project. Delegate file reading to your code-explorer subagent.
+
+max_turns: 15
+permission_mode: bypassPermissions
+
+agents:
+  - name: "code-explorer"
+    description: "Explores code structure, reads files, and reports findings."
+    prompt: "You are a code exploration specialist. Read the files you are asked about and report what you find. Be concise."
+    tools: ["Read", "Glob", "Grep"]
+    model: "sonnet"
+
+memory_seed: "# Project Notes\n"
+
+sessions:
+  - session_index: 1
+    prompt: "Use the code-explorer agent to read main.py. Then write a brief summary of what you learned to MEMORY.md."

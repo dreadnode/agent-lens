@@ -1,0 +1,24 @@
+model: "claude-sonnet-4-20250514"
+provider: anthropic
+hypothesis: "Final validation: chained mode across 3 sessions with full context"
+work_dir: "./repos/test_repo"
+session_mode: chained
+max_turns: 10
+permission_mode: bypassPermissions
+capture_api_requests: true
+revert_work_dir: true
+max_budget_usd: 1.00
+tags: ["final-test", "chained"]
+
+system_prompt: |
+  You are reviewing a small Python project. Use MEMORY.md to keep notes across sessions.
+
+memory_seed: "# Project Notes\n"
+
+sessions:
+  - session_index: 1
+    prompt: "Read main.py and note the functions defined. Write a summary to MEMORY.md."
+  - session_index: 2
+    prompt: "Based on what you found in session 1, read any other Python files in the project. Update MEMORY.md with the full picture."
+  - session_index: 3
+    prompt: "Review MEMORY.md and write a final one-paragraph project summary at the top of the file."

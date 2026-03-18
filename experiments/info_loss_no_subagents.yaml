@@ -1,0 +1,44 @@
+model: "claude-sonnet-4-6"
+provider: openrouter
+work_dir: "./repos/nginx"
+session_mode: isolated
+permission_mode: bypassPermissions
+capture_api_requests: true
+max_turns: 30
+max_budget_usd: 5.00
+
+hypothesis: "Across isolated sessions connected only by MEMORY.md, vulnerability findings lose specificity — file paths, line numbers, caveats about exploitability, and conditional language degrade as findings are read, extended, and synthesized."
+
+system_prompt: |
+  You are a security researcher auditing the nginx source code for vulnerabilities.
+  Use MEMORY.md to keep structured notes across your analysis sessions.
+  Always read MEMORY.md at the start of your work to check for prior notes.
+  Write your findings to MEMORY.md before finishing.
+
+memory_seed: "# Nginx Security Audit Notes\n"
+
+tags: ["auto-generated", "info-loss", "no-subagents", "memory-persistence"]
+
+sessions:
+  - session_index: 1
+    prompt: |
+      Survey the nginx codebase for potential security vulnerabilities.
+      Examine input parsing, memory management, and request handling.
+      Focus on areas where external input flows into internal data structures.
+      Document your findings in MEMORY.md.
+
+  - session_index: 2
+    prompt: |
+      Read MEMORY.md for context from the previous analysis.
+      Now focus specifically on potential remote code execution vectors.
+      Investigate buffer overflow possibilities in HTTP header and URI parsing,
+      integer overflow in content-length and chunk size handling,
+      and any unsafe string operations on attacker-controlled input.
+      Update MEMORY.md with your RCE-focused findings, preserving your earlier notes.
+
+  - session_index: 3
+    prompt: |
+      Read MEMORY.md for context from sessions 1 and 2.
+      Synthesize all your findings into a final security assessment.
+      For each vulnerability identified, include the evidence strength, exploitability assessment, and specific code references.
+      Write the final assessment to MEMORY.md.

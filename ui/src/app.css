@@ -1,0 +1,176 @@
+@import "tailwindcss";
+@plugin "@tailwindcss/typography";
+
+:root {
+	--background: oklch(1 0 0);
+	--foreground: oklch(0.13 0.02 264);
+	--card: oklch(0.985 0.002 264);
+	--card-foreground: oklch(0.13 0.02 264);
+	--popover: oklch(0.99 0.001 264);
+	--popover-foreground: oklch(0.13 0.02 264);
+	--primary: oklch(0.205 0.015 264);
+	--primary-foreground: oklch(0.985 0 0);
+	--secondary: oklch(0.94 0.006 264);
+	--secondary-foreground: oklch(0.205 0.015 264);
+	--muted: oklch(0.94 0.006 264);
+	--muted-foreground: oklch(0.46 0.015 264);
+	--accent: oklch(0.94 0.006 264);
+	--accent-foreground: oklch(0.205 0.015 264);
+	--destructive: oklch(0.577 0.245 27.325);
+	--destructive-foreground: oklch(0.985 0 0);
+	--border: oklch(0.85 0.01 264);
+	--input: oklch(0.85 0.01 264);
+	--ring: oklch(0.708 0.165 254);
+	--sidebar: oklch(0.96 0.004 264);
+	--radius: 0.5rem;
+
+	/* Terminal-style accent colors */
+	--term-red: oklch(0.577 0.245 27);
+	--term-green: oklch(0.52 0.17 145);
+	--term-amber: oklch(0.65 0.17 75);
+	--term-blue: oklch(0.55 0.15 255);
+	--term-cyan: oklch(0.58 0.12 210);
+	--term-dim: oklch(0.55 0.01 264);
+}
+
+.dark {
+	--background: oklch(0.14 0.005 270);
+	--foreground: oklch(0.93 0 0);
+	--card: oklch(0.19 0.008 270);
+	--card-foreground: oklch(0.93 0 0);
+	--popover: oklch(0.19 0.008 270);
+	--popover-foreground: oklch(0.93 0 0);
+	--primary: oklch(0.93 0 0);
+	--primary-foreground: oklch(0.19 0.008 270);
+	--secondary: oklch(0.24 0.01 270);
+	--secondary-foreground: oklch(0.85 0 0);
+	--muted: oklch(0.21 0.008 270);
+	--muted-foreground: oklch(0.65 0.01 264);
+	--accent: oklch(0.27 0.012 270);
+	--accent-foreground: oklch(0.88 0 0);
+	--destructive: oklch(0.577 0.245 27.325);
+	--destructive-foreground: oklch(0.985 0 0);
+	--border: oklch(0.32 0.012 270);
+	--input: oklch(0.32 0.012 270);
+	--ring: oklch(0.551 0.178 254);
+	--sidebar: oklch(0.14 0.005 270);
+
+	--term-red: oklch(0.7 0.2 25);
+	--term-green: oklch(0.7 0.17 145);
+	--term-amber: oklch(0.78 0.15 75);
+	--term-blue: oklch(0.7 0.14 255);
+	--term-cyan: oklch(0.75 0.1 210);
+	--term-dim: oklch(0.5 0.01 270);
+}
+
+@theme inline {
+	--color-background: var(--background);
+	--color-foreground: var(--foreground);
+	--color-card: var(--card);
+	--color-card-foreground: var(--card-foreground);
+	--color-popover: var(--popover);
+	--color-popover-foreground: var(--popover-foreground);
+	--color-primary: var(--primary);
+	--color-primary-foreground: var(--primary-foreground);
+	--color-secondary: var(--secondary);
+	--color-secondary-foreground: var(--secondary-foreground);
+	--color-muted: var(--muted);
+	--color-muted-foreground: var(--muted-foreground);
+	--color-accent: var(--accent);
+	--color-accent-foreground: var(--accent-foreground);
+	--color-destructive: var(--destructive);
+	--color-destructive-foreground: var(--destructive-foreground);
+	--color-border: var(--border);
+	--color-input: var(--input);
+	--color-ring: var(--ring);
+	--color-sidebar: var(--sidebar);
+	--radius: var(--radius);
+	--font-sans: "Inter", ui-sans-serif, system-ui, sans-serif, "Apple Color Emoji",
+		"Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
+	--font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas,
+		"Liberation Mono", "Courier New", monospace;
+}
+
+@layer base {
+	* {
+		border-color: var(--border);
+	}
+	body {
+		@apply bg-background text-foreground font-sans antialiased;
+	}
+	button:not(:disabled) {
+		cursor: pointer;
+	}
+	button:disabled {
+		cursor: not-allowed;
+	}
+	/* Metadata pills */
+	.meta-pill {
+		font-size: 12px;
+		padding: 0.125rem 0.5rem;
+		border: 1px solid var(--border);
+		border-radius: 9999px;
+		color: var(--muted-foreground);
+	}
+
+	/* Tab navigation */
+	.term-tab {
+		font-size: 12px;
+		color: var(--muted-foreground);
+		text-decoration: none;
+		padding: 0.125rem 0.25rem;
+		border-radius: 2px;
+		transition: color 0.15s, background-color 0.15s;
+	}
+	.term-tab:hover {
+		color: var(--foreground);
+		background-color: var(--muted);
+	}
+	.term-tab.active {
+		color: var(--foreground);
+		font-weight: 500;
+	}
+	.session-pill-inactive {
+		text-decoration: none;
+		border-radius: 2px;
+		transition: color 0.15s, background-color 0.15s, border-color 0.15s;
+	}
+	.session-pill-inactive:hover {
+		color: var(--foreground) !important;
+		background-color: var(--muted);
+		border-color: var(--muted-foreground) !important;
+	}
+
+	/* Offset anchor scroll targets so they clear the sticky header */
+	[id^="step-"] {
+		scroll-margin-top: 4.5rem;
+	}
+	/* Ensure pre/code inside cards inherit foreground color */
+	pre, code {
+		color: inherit;
+	}
+}
+
+/* Override prose typography — outside @layer for higher specificity than the plugin */
+.prose h1, .prose h2, .prose h3, .prose h4, .prose h5, .prose h6 {
+	color: var(--foreground);
+}
+.prose strong, .prose b {
+	color: var(--foreground);
+}
+.prose code {
+	color: var(--foreground);
+}
+.prose a {
+	color: var(--foreground);
+}
+.prose pre {
+	color: var(--foreground);
+	background-color: var(--muted);
+}
+.prose pre code {
+	color: var(--foreground);
+}
+.prose ol > li::marker, .prose ul > li::marker {
+	color: var(--muted-foreground);
+}

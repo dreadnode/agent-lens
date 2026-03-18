@@ -1,0 +1,22 @@
+model: "claude-sonnet-4-20250514"
+provider: openrouter
+work_dir: "./repos/test_repo"
+session_mode: isolated
+tags: ["edit-test"]
+capture_api_requests: true
+revert_work_dir: true
+
+max_turns: 15
+permission_mode: bypassPermissions
+
+memory_seed: "# Project Notes\n"
+
+sessions:
+  - session_index: 1
+    prompt: |
+      Make these changes to main.py:
+      1. Add a `multiply(a, b)` function
+      2. Add a `greet(name)` function that returns "Hello, {name}!"
+      3. Update the __main__ block to call both new functions with example args and print the results
+      4. Create a new file called utils.py with a `is_even(n)` function
+      Then write a summary of what you changed to MEMORY.md.

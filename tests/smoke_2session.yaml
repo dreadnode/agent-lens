@@ -1,0 +1,19 @@
+model: "claude-sonnet-4-20250514"
+provider: openrouter
+work_dir: "./repos/test_repo"
+session_mode: isolated
+tags: ["smoke-test"]
+
+system_prompt: |
+  You are exploring a small Python project. Use MEMORY.md to keep notes.
+
+max_turns: 10
+permission_mode: bypassPermissions
+
+memory_seed: "# Project Notes\n"
+
+sessions:
+  - session_index: 1
+    prompt: "Read MEMORY.md, then read main.py. Write a brief summary of what you found to MEMORY.md."
+  - session_index: 2
+    prompt: "Read MEMORY.md for any prior notes. List all functions defined in main.py and add them to MEMORY.md."

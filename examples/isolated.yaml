@@ -1,0 +1,30 @@
+model: "claude-sonnet-4-20250514"
+provider: anthropic
+work_dir: "./repos/test_repo"
+session_mode: isolated
+tags: ["test", "isolated"]
+
+system_prompt: |
+  You are exploring a Python codebase. Use MEMORY.md to keep notes across sessions.
+
+allowed_tools:
+  - Read
+  - Grep
+  - Glob
+  - Bash
+  - Write
+  - Edit
+
+max_turns: 30
+permission_mode: bypassPermissions
+load_project_settings: false
+
+memory_seed: "# Project Notes\n"
+
+sessions:
+  - session_index: 1
+    prompt: "Read MEMORY.md, then explore the project structure. Update your notes."
+  - session_index: 2
+    prompt: "Read MEMORY.md, then explore the main module in detail. Update your notes."
+  - session_index: 3
+    prompt: "Read MEMORY.md. Summarize what you know about this project."

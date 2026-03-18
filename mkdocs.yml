@@ -1,0 +1,72 @@
+site_name: AgentLens
+site_description: Multi-session agent interpretability harness
+repo_url: https://github.com/vabruzzo/agentlens
+
+theme:
+  name: material
+  palette:
+    - scheme: default
+      primary: indigo
+      toggle:
+        icon: material/brightness-7
+        name: Switch to dark mode
+    - scheme: slate
+      primary: indigo
+      toggle:
+        icon: material/brightness-4
+        name: Switch to light mode
+  features:
+    - navigation.sections
+    - navigation.expand
+    - content.code.copy
+    - toc.follow
+
+markdown_extensions:
+  - admonition
+  - pymdownx.details
+  - pymdownx.superfences
+  - pymdownx.tabbed:
+      alternate_style: true
+  - toc:
+      permalink: true
+  - attr_list
+  - def_list
+  - md_in_html
+  - pymdownx.emoji:
+      emoji_index: !!python/name:material.extensions.emoji.twemoji
+      emoji_generator: !!python/name:material.extensions.emoji.to_svg
+
+plugins:
+  - search
+  - mkdocstrings:
+      handlers:
+        python:
+          options:
+            show_source: false
+            show_root_heading: true
+            show_root_full_path: false
+            members_order: source
+            docstring_style: google
+            filters: ["!^_"]
+            show_if_no_docstring: false
+            heading_level: 3
+            merge_init_into_class: true
+
+nav:
+  - Home: index.md
+  - Getting Started:
+      - Installation: getting-started/install.md
+      - Quick Start: getting-started/quickstart.md
+  - User Guide:
+      - Configuration: guide/configuration.md
+      - Session Modes: guide/session-modes.md
+      - Resampling & Replay: guide/resampling.md
+      - Output Structure: guide/output.md
+      - Subagents: guide/subagents.md
+      - Web UI: guide/web-ui.md
+  - CLI Reference: cli.md
+  - Glossary: glossary.md
+  - API Reference:
+      - Config: api/config.md
+      - Shadow Git: api/shadow-git.md
+      - State Manager: api/state.md

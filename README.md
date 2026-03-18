@@ -8,6 +8,8 @@ Built for AI alignment and interpretability research — studying how LLM agents
 
 > **Note:** AgentLens currently supports Claude Code via the Claude Agent SDK. Support for additional agents and frameworks is planned — see [Roadmap](#roadmap). Some features (especially turn-level replay) are experimental. We welcome PRs and contributions — [open an issue](https://github.com/dreadnode/agent-lens/issues) if you run into bugs.
 
+![Run list](docs/assets/run-list.png)
+
 ## What it does
 
 The harness takes a YAML config describing a sequence of sessions (prompts to an agent), runs each session against a working directory via the Claude Agent SDK, and produces structured outputs:
@@ -407,6 +409,12 @@ Open `http://localhost:5173`. The UI reads from the `runs/` directory and provid
 - **Changelog** — per-step file write log across all sessions with expandable diffs
 - **Config viewer** — frozen YAML config from the run
 - **Analysis** — rendered markdown from `analysis.md`
+
+![Trajectory viewer with subagent and resample controls](docs/assets/trajectory-subagent.png)
+
+![Edit & Resample — intervention testing](docs/assets/edit-resample.png)
+
+![Memory diff](docs/assets/memory-diff.png)
 - **Dark mode** — toggle between light and dark themes
 
 The UI expects `RUNS_DIR=../runs` (configured in `ui/.env`).

@@ -27,7 +27,9 @@ The resampling API keys are needed for any resampling in the UI (both vanilla re
 ## Features
 
 ### Run list
-Searchable, filterable list of all runs showing model, cost, session count, and tags.
+Searchable, filterable list of all runs showing model, cost, session count, and tags. Replay runs are grouped under their source run.
+
+![Run list](../assets/run-list.png)
 
 ### Run overview
 Metrics dashboard with session list, fork relationships, and hypothesis display.
@@ -40,9 +42,14 @@ Full chat view rendering:
 - Tool calls with arguments
 - Tool results / observations
 - System messages
+- Subagent calls with links to subagent trajectories
+
+![Trajectory viewer with subagent and resample controls](../assets/trajectory-subagent.png)
 
 ### Memory diff
 Before/after diffs of the memory file per session, showing how the agent's notes evolve.
+
+![Memory diff](../assets/memory-diff.png)
 
 ### API captures
 Request/response viewer showing:
@@ -65,6 +72,8 @@ Interactive message editor for intervention testing:
 1. Edit assistant text, tool results, or system prompts (thinking blocks are shown read-only)
 2. Resample with the modified input
 3. Compare original vs. variant responses
+
+![Edit & Resample](../assets/edit-resample.png)
 
 ### Changelog
 Per-step file write log across all sessions with expandable diffs.

@@ -68,6 +68,10 @@ The harness uses the [Claude Agent SDK](https://pypi.org/project/claude-agent-sd
 
 You can also set `base_url` in your config to point at a custom Anthropic-compatible endpoint.
 
+If no API key is set, the SDK will use your Claude Code subscription credentials from `~/.claude/credentials.json` (requires Claude Pro/Max). Usage is covered by your subscription with rate limits rather than per-token billing.
+
+> **Cost reporting caveat:** Cost figures in `run_meta.json` and the web UI come from the SDK and are based on Anthropic's list pricing regardless of provider. They may not match your actual bill (especially on OpenRouter, Bedrock, or Vertex) and are purely informational when using a Claude Code subscription.
+
 Example configs:
 
 ```yaml

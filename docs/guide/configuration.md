@@ -90,6 +90,17 @@ sessions:
 | Anthropic | `anthropic` | `ANTHROPIC_API_KEY` | Direct Anthropic API |
 | AWS Bedrock | `bedrock` | AWS credentials | Sets `CLAUDE_CODE_USE_BEDROCK=1` |
 | GCP Vertex AI | `vertex` | GCP credentials | Sets `CLAUDE_CODE_USE_VERTEX=1` |
+| Claude Code subscription | `anthropic` | *(none needed)* | If no `ANTHROPIC_API_KEY` is set, the SDK uses your Claude Code subscription credentials from `~/.claude/credentials.json`. Usage is covered by your subscription (Pro/Max) with rate limits rather than per-token billing. |
+
+### Cost reporting
+
+Cost figures shown in `run_meta.json`, `harness inspect`, and the web UI come from the Claude Agent SDK's `total_cost_usd` field, which is calculated using Anthropic's list pricing regardless of which provider you use. This means:
+
+- **OpenRouter** — reported cost reflects Anthropic list prices, not your actual OpenRouter bill (which may differ)
+- **Bedrock / Vertex** — reported cost may not match AWS or GCP billing
+- **Claude Code subscription** — cost is reported but you're not actually billed per-token
+
+Treat cost figures as rough estimates, not authoritative billing data.
 
 ## Automatic behaviors
 

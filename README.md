@@ -71,6 +71,11 @@ The harness uses the [Claude Agent SDK](https://pypi.org/project/claude-agent-sd
 | [GCP Vertex AI](https://cloud.google.com/vertex-ai) | `vertex` | Standard GCP credentials (`GOOGLE_APPLICATION_CREDENTIALS`, etc.) | Sets `CLAUDE_CODE_USE_VERTEX=1`. |
 
 You can also set `base_url` in your config to point at a custom Anthropic-compatible endpoint.
+If you need to override the `claude` executable itself, set `cli_path` in your
+config to a wrapper script. This is the minimal integration point for launchers
+such as `ollama launch claude`; see the configuration guide for the included
+`scripts/ollama_claude_bridge.sh` helper and the `base_url: http://127.0.0.1:11434`
+setting needed for capture/resampling parity.
 
 With `provider: anthropic` (the default), if no `ANTHROPIC_API_KEY` is set, the SDK falls back to your Claude Code subscription credentials from `~/.claude/credentials.json` (requires Claude Pro/Max). Usage is covered by your subscription with rate limits rather than per-token billing. If `ANTHROPIC_API_KEY` is set in your environment, it takes precedence over subscription credentials.
 
@@ -236,6 +241,7 @@ Subagent messages are filtered from the parent trajectory to keep it clean. The 
 | `model` | yes | — | Claude model identifier (e.g. `claude-sonnet-4-20250514`). Use Anthropic model names, not OpenRouter-format names. |
 | `provider` | no | `anthropic` | API provider: `anthropic`, `openrouter`, `bedrock`, `vertex` |
 | `base_url` | no | — | Custom API base URL (overrides provider default) |
+| `cli_path` | no | — | Override the `claude` executable path used by the Claude Agent SDK (for example, a wrapper around `ollama launch claude`). |
 | `hypothesis` | no | — | One-sentence hypothesis this experiment tests. Shown in the web UI and saved to `run_meta.json`. |
 | `work_dir` | yes | — | Working directory the agent operates in (any directory, not just repos) |
 | `repo_name` | no | — | Human-readable name for the working directory |

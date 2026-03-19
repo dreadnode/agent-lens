@@ -51,6 +51,7 @@ sessions:
 | `model` | yes | — | Claude model identifier (e.g. `claude-sonnet-4-20250514`) |
 | `provider` | no | `anthropic` | API provider: `anthropic`, `openrouter`, `bedrock`, `vertex` |
 | `base_url` | no | — | Custom API base URL (overrides provider default) |
+| `cli_path` | no | — | Override the `claude` executable path used by the Claude Agent SDK. Useful for wrappers such as `ollama launch claude`. |
 | `hypothesis` | no | — | What this experiment tests. Shown in the web UI. |
 | `work_dir` | yes | — | Working directory the agent operates in (any directory) |
 | `repo_name` | no | — | Human-readable name for the working directory |
@@ -91,6 +92,78 @@ sessions:
 | AWS Bedrock | `bedrock` | AWS credentials | Sets `CLAUDE_CODE_USE_BEDROCK=1` |
 | GCP Vertex AI | `vertex` | GCP credentials | Sets `CLAUDE_CODE_USE_VERTEX=1` |
 | Claude Code subscription | `anthropic` | *(none needed)* | If no `ANTHROPIC_API_KEY` is set, the SDK uses your Claude Code subscription credentials from `~/.claude/credentials.json`. Usage is covered by your subscription (Pro/Max) with rate limits rather than per-token billing. |
+
+### Custom CLI wrappers
+
+The Claude Agent SDK launches the `claude` CLI under the hood. If you want
+to route AgentLens through an alternate launcher that still exposes the Claude
+Code CLI interface, set `cli_path` to a wrapper executable.
+
+One practical example is `ollama launch claude`. The wrapper needs to bridge
+AgentLens' `--model ...` flag to the launcher layer, because Ollama expects
+the model on `ollama launch claude --model <name>` rather than forwarding it
+to the inner `claude` process.
+
+Example bridge script:
+
+```bash
+#!/bin/bash
+set -euo pipefail
+
+model=""
+args=()
+while (($#)); do
+  case "$1" in
+    --model)
+      model="$2"
+      shift 2
+      ;;
+    --model=*)
+      model="${1#--model=}"
+      shift
+      ;;
+    *)
+      args+=("$1")
+      shift
+      ;;
+  esac
+done
+
+exec ollama launch claude --model "$model" -- "${args[@]}"
+```
+
+AgentLens includes this bridge at:
+
+```yaml
+cli_path: "/absolute/path/to/agent-lens/scripts/ollama_claude_bridge.sh"
+```
+
+For full feature parity with capture/resampling, set the Ollama local endpoint
+as `base_url` so AgentLens' proxy forwards captured requests to Ollama:
+
+```yaml
+model: "kimi-k2.5:cloud"
+provider: anthropic
+base_url: "http://127.0.0.1:11434"
+cli_path: "/absolute/path/to/agent-lens/scripts/ollama_claude_bridge.sh"
+work_dir: "./repos/my_project"
+sessions:
+  - session_index: 1
+    prompt: "Explore the repo briefly."
+```
+
+Then point your config at it:
+
+```yaml
+model: "kimi-k2.5:cloud"
+base_url: "http://127.0.0.1:11434"
+cli_path: "/absolute/path/to/agent-lens/scripts/ollama_claude_bridge.sh"
+provider: anthropic
+work_dir: "./repos/my_project"
+sessions:
+  - session_index: 1
+    prompt: "Explore the repo briefly."
+```
 
 ### Cost reporting
 

@@ -89,6 +89,7 @@ class TestRunConfigValidation:
     def test_defaults(self):
         rc = RunConfig.model_validate(_minimal())
         assert rc.provider == "anthropic"
+        assert rc.cli_path is None
         assert rc.tags == []
         assert rc.max_turns == 50
         assert rc.permission_mode == "bypassPermissions"
@@ -224,6 +225,22 @@ class TestLoadConfig:
         rc = load_config(config_yaml)
         assert rc.memory_file == "notes.md"
         assert "Custom" in rc.memory_seed
+
+    def test_load_with_cli_path(self, tmp_path: Path):
+        config_yaml = tmp_path / "test.yaml"
+        config_yaml.write_text(
+            textwrap.dedent("""\
+            model: "kimi-k2.5:cloud"
+            cli_path: "/tmp/ollama-claude-bridge"
+            work_dir: "./repos/test"
+            sessions:
+              - session_index: 1
+                prompt: "hello"
+            """)
+        )
+        rc = load_config(config_yaml)
+        assert rc.model == "kimi-k2.5:cloud"
+        assert rc.cli_path == "/tmp/ollama-claude-bridge"
 
 
 # ---------------------------------------------------------------------------

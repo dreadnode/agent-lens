@@ -4,7 +4,7 @@ Feature ideas for AgentLens. Contributions welcome — pick something and open a
 
 ## Analysis & Comparison
 
-- [ ] **Replicate diff view** — Given N resamples or replays, automatically find where trajectories diverge (first different tool call, different file write) and surface it in the web UI
+- [ ] **treplicate diff view** — Given N resamples or replays, automatically find where trajectories diverge (first different tool call, different file write) and surface it in the web UI
 - [ ] **Metrics extraction** — Auto-compute per-session stats: thinking token count, hedging frequency, tool call sequence, memory write size. Enable quantitative comparison without reading every trajectory
 - [ ] **Model comparison mode** — Run the same config across multiple models (`model: [sonnet, opus]`) and produce side-by-side results in a single run
 

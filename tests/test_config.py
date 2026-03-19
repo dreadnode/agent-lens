@@ -88,7 +88,7 @@ class TestRunConfigValidation:
 
     def test_defaults(self):
         rc = RunConfig.model_validate(_minimal())
-        assert rc.provider == "openrouter"
+        assert rc.provider == "anthropic"
         assert rc.tags == []
         assert rc.max_turns == 50
         assert rc.permission_mode == "bypassPermissions"

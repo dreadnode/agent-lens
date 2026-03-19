@@ -32,10 +32,12 @@ uv sync
 
 ## Quick start
 
-Set your API key (see [Providers](#providers) for all options):
+If you have a Claude Code subscription (Pro/Max), no API key is needed — the SDK uses your subscription credentials automatically. Otherwise, set an API key:
 
 ```bash
-export OPENROUTER_API_KEY=sk-or-...
+export ANTHROPIC_API_KEY=sk-ant-...   # Anthropic API key
+# or
+export OPENROUTER_API_KEY=sk-or-...   # OpenRouter (set provider: openrouter in config)
 ```
 
 Run the smoke test:
@@ -63,27 +65,27 @@ The harness uses the [Claude Agent SDK](https://pypi.org/project/claude-agent-sd
 
 | Provider | Config value | Env var | Notes |
 |----------|-------------|---------|-------|
-| [OpenRouter](https://openrouter.ai) | `openrouter` (default) | `OPENROUTER_API_KEY` | Routes through OpenRouter. The harness sets `ANTHROPIC_BASE_URL` automatically. |
-| [Anthropic](https://console.anthropic.com) | `anthropic` | `ANTHROPIC_API_KEY` | Direct Anthropic API. The SDK reads the key from the environment. |
+| [Anthropic](https://console.anthropic.com) | `anthropic` (default) | `ANTHROPIC_API_KEY` | Direct Anthropic API. If no key is set, falls back to Claude Code subscription credentials. |
+| [OpenRouter](https://openrouter.ai) | `openrouter` | `OPENROUTER_API_KEY` | Routes through OpenRouter. The harness sets `ANTHROPIC_BASE_URL` automatically. |
 | [AWS Bedrock](https://aws.amazon.com/bedrock/) | `bedrock` | Standard AWS credentials (`AWS_ACCESS_KEY_ID`, etc.) | Sets `CLAUDE_CODE_USE_BEDROCK=1`. |
 | [GCP Vertex AI](https://cloud.google.com/vertex-ai) | `vertex` | Standard GCP credentials (`GOOGLE_APPLICATION_CREDENTIALS`, etc.) | Sets `CLAUDE_CODE_USE_VERTEX=1`. |
 
 You can also set `base_url` in your config to point at a custom Anthropic-compatible endpoint.
 
-If no API key is set, the SDK will use your Claude Code subscription credentials from `~/.claude/credentials.json` (requires Claude Pro/Max). Usage is covered by your subscription with rate limits rather than per-token billing.
+With `provider: anthropic` (the default), if no `ANTHROPIC_API_KEY` is set, the SDK falls back to your Claude Code subscription credentials from `~/.claude/credentials.json` (requires Claude Pro/Max). Usage is covered by your subscription with rate limits rather than per-token billing. If `ANTHROPIC_API_KEY` is set in your environment, it takes precedence over subscription credentials.
 
 > **Cost reporting caveat:** Cost figures in `run_meta.json` and the web UI come from the SDK and are based on Anthropic's list pricing regardless of provider. They may not match your actual bill (especially on OpenRouter, Bedrock, or Vertex) and are purely informational when using a Claude Code subscription.
 
 Example configs:
 
 ```yaml
-# OpenRouter (default)
-model: "claude-sonnet-4-20250514"
-provider: openrouter
-
-# Anthropic direct
+# Anthropic (default) — uses API key or Claude Code subscription
 model: "claude-sonnet-4-20250514"
 provider: anthropic
+
+# OpenRouter
+model: "claude-sonnet-4-20250514"
+provider: openrouter
 ```
 
 ## Configuration
@@ -92,7 +94,7 @@ Experiments are defined as YAML config files. Here's a full example:
 
 ```yaml
 model: "claude-sonnet-4-20250514"
-provider: openrouter                    # openrouter | anthropic | bedrock | vertex
+provider: anthropic                     # anthropic | openrouter | bedrock | vertex
 hypothesis: "The agent preserves hedging across sessions"  # what this experiment tests
 work_dir: "./repos/my_project"          # working directory the agent operates in
 session_mode: chained                   # isolated | chained | forked
@@ -232,7 +234,7 @@ Subagent messages are filtered from the parent trajectory to keep it clean. The 
 | Field | Required | Default | Description |
 |-------|----------|---------|-------------|
 | `model` | yes | — | Claude model identifier (e.g. `claude-sonnet-4-20250514`). Use Anthropic model names, not OpenRouter-format names. |
-| `provider` | no | `openrouter` | API provider: `openrouter`, `anthropic`, `bedrock`, `vertex` |
+| `provider` | no | `anthropic` | API provider: `anthropic`, `openrouter`, `bedrock`, `vertex` |
 | `base_url` | no | — | Custom API base URL (overrides provider default) |
 | `hypothesis` | no | — | One-sentence hypothesis this experiment tests. Shown in the web UI and saved to `run_meta.json`. |
 | `work_dir` | yes | — | Working directory the agent operates in (any directory, not just repos) |

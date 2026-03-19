@@ -6,7 +6,7 @@ Experiments are defined as YAML config files. The harness validates configs with
 
 ```yaml
 model: "claude-sonnet-4-20250514"
-provider: openrouter
+provider: anthropic
 hypothesis: "The agent preserves hedging across sessions"
 work_dir: "./repos/my_project"
 session_mode: chained
@@ -49,7 +49,7 @@ sessions:
 | Field | Required | Default | Description |
 |-------|----------|---------|-------------|
 | `model` | yes | — | Claude model identifier (e.g. `claude-sonnet-4-20250514`) |
-| `provider` | no | `openrouter` | API provider: `openrouter`, `anthropic`, `bedrock`, `vertex` |
+| `provider` | no | `anthropic` | API provider: `anthropic`, `openrouter`, `bedrock`, `vertex` |
 | `base_url` | no | — | Custom API base URL (overrides provider default) |
 | `hypothesis` | no | — | What this experiment tests. Shown in the web UI. |
 | `work_dir` | yes | — | Working directory the agent operates in (any directory) |
@@ -86,8 +86,8 @@ sessions:
 
 | Provider | Config value | Env var | Notes |
 |----------|-------------|---------|-------|
-| OpenRouter | `openrouter` (default) | `OPENROUTER_API_KEY` | Routes through OpenRouter |
-| Anthropic | `anthropic` | `ANTHROPIC_API_KEY` | Direct Anthropic API |
+| Anthropic | `anthropic` (default) | `ANTHROPIC_API_KEY` | Direct Anthropic API. Falls back to Claude Code subscription if no key set. |
+| OpenRouter | `openrouter` | `OPENROUTER_API_KEY` | Routes through OpenRouter |
 | AWS Bedrock | `bedrock` | AWS credentials | Sets `CLAUDE_CODE_USE_BEDROCK=1` |
 | GCP Vertex AI | `vertex` | GCP credentials | Sets `CLAUDE_CODE_USE_VERTEX=1` |
 | Claude Code subscription | `anthropic` | *(none needed)* | If no `ANTHROPIC_API_KEY` is set, the SDK uses your Claude Code subscription credentials from `~/.claude/credentials.json`. Usage is covered by your subscription (Pro/Max) with rate limits rather than per-token billing. |

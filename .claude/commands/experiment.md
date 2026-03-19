@@ -208,8 +208,8 @@ sessions:
     # count: 3                           # run as 3 independent replicates
 
 # Provider (pick one)
-provider: openrouter                     # default, needs OPENROUTER_API_KEY
-# provider: anthropic                    # needs ANTHROPIC_API_KEY
+provider: anthropic                      # default, uses ANTHROPIC_API_KEY or Claude Code subscription
+# provider: openrouter                   # needs OPENROUTER_API_KEY
 # provider: bedrock                      # uses AWS credentials
 # provider: vertex                       # uses GCP credentials
 

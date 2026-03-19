@@ -1,5 +1,5 @@
 model: "claude-sonnet-4-20250514"
-provider: openrouter
+provider: anthropic
 work_dir: "./repos/test_repo"
 session_mode: isolated
 tags: ["smoke-test"]

@@ -58,7 +58,7 @@ class RunConfig(BaseModel):
 
     # model
     model: str
-    provider: str = "openrouter"
+    provider: str = "anthropic"
     base_url: str | None = None
 
     # working directory

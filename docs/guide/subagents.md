@@ -45,7 +45,7 @@ The subagent trajectory is a full ATIF trajectory with its own steps, tool calls
 
 ```yaml
 model: "claude-sonnet-4-20250514"
-provider: openrouter
+provider: anthropic
 work_dir: "./repos/test_repo"
 session_mode: isolated
 capture_subagent_trajectories: true

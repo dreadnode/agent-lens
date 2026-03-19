@@ -6,7 +6,7 @@ Create a file called `my_experiment.yaml`:
 
 ```yaml
 model: "claude-sonnet-4-20250514"
-provider: openrouter
+provider: anthropic
 work_dir: "./repos/my_project"
 session_mode: isolated
 

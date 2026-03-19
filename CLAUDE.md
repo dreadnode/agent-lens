@@ -49,7 +49,7 @@ Required fields: `model`, `work_dir`, `sessions`
 
 ```yaml
 model: "claude-sonnet-4-20250514"      # Anthropic model name
-provider: openrouter                    # openrouter | anthropic | bedrock | vertex
+provider: anthropic                     # anthropic | openrouter | bedrock | vertex
 work_dir: "./repos/my_repo"            # Working directory (any directory, not just repos)
 session_mode: isolated                  # isolated | chained | forked
 system_prompt: "..."                    # Shared system prompt
@@ -92,8 +92,8 @@ This enables:
 - **forked**: Sessions 2+ reset working directory to the state after session 1 (or specified fork point)
 
 ### Providers
-- `openrouter` (default): needs `OPENROUTER_API_KEY`
-- `anthropic`: needs `ANTHROPIC_API_KEY`
+- `anthropic` (default): needs `ANTHROPIC_API_KEY` or Claude Code subscription
+- `openrouter`: needs `OPENROUTER_API_KEY`
 - `bedrock`: uses AWS credentials
 - `vertex`: uses GCP credentials
 

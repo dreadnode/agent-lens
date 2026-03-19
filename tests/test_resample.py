@@ -10,8 +10,10 @@ import pytest
 from harness.resample import (
     _build_headers,
     _clean_thinking_signatures,
+    _is_ollama_target,
     _next_variant_id,
     _prepare_request,
+    _resolve_api_key,
     dump_request,
     list_requests,
     resolve_session_dir,
@@ -31,6 +33,7 @@ def _make_raw_dumps(session_dir: Path, requests: list[dict]) -> Path:
         (raw / f"request_{i:03d}_headers.json").write_text(json.dumps({
             "target": "https://api.anthropic.com/v1/messages",
             "headers": {"content-type": "application/json"},
+            "provider": "anthropic",
         }))
     return raw
 
@@ -326,3 +329,52 @@ class TestBuildHeaders:
         )
         assert headers["content-type"] == "application/json"
         assert headers["anthropic-version"] == "2023-06-01"
+
+    def test_ollama_headers_no_api_key(self):
+        headers = _build_headers(
+            captured_headers={"content-type": "application/json"},
+            api_key="",
+            target_url="http://localhost:11434/v1/messages",
+        )
+        assert headers["x-api-key"] == "ollama"
+        assert "Authorization" not in headers
+
+    def test_ollama_headers_provider_marker(self):
+        headers = _build_headers(
+            captured_headers={"content-type": "application/json"},
+            api_key="",
+            target_url="http://custom:9999/v1/messages",
+            provider="ollama",
+        )
+        assert headers["x-api-key"] == "ollama"
+
+
+class TestIsOllamaTarget:
+    def test_localhost(self):
+        assert _is_ollama_target("http://localhost:11434/v1/messages") is True
+
+    def test_loopback(self):
+        assert _is_ollama_target("http://127.0.0.1:11434/v1/messages") is True
+
+    def test_default_port(self):
+        assert _is_ollama_target("http://gpu-box:11434/v1/messages") is True
+
+    def test_provider_marker(self):
+        assert _is_ollama_target("http://custom:9999/v1/messages", "ollama") is True
+
+    def test_anthropic(self):
+        assert _is_ollama_target("https://api.anthropic.com/v1/messages") is False
+
+    def test_openrouter(self):
+        assert _is_ollama_target("https://openrouter.ai/api/v1/messages") is False
+
+
+class TestResolveApiKeyOllama:
+    def test_ollama_returns_empty(self):
+        assert _resolve_api_key("http://localhost:11434/v1/messages") == ""
+
+    def test_ollama_custom_port_returns_empty(self):
+        assert _resolve_api_key("http://gpu-box:11434/v1/messages") == ""
+
+    def test_ollama_provider_marker_returns_empty(self):
+        assert _resolve_api_key("http://custom:9999/v1/messages", "ollama") == ""

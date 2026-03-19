@@ -17,6 +17,7 @@ import json
 import logging
 from datetime import datetime, timezone
 from pathlib import Path
+from urllib.parse import urlparse
 
 import httpx
 import typer
@@ -76,13 +77,34 @@ def _clean_thinking_signatures(messages: list) -> list:
     return cleaned
 
 
+def _is_ollama_target(target_url: str, provider: str | None = None) -> bool:
+    """Check if a target URL points to an Ollama server."""
+    if provider == "ollama":
+        return True
+
+    parsed = urlparse(target_url)
+    host = parsed.hostname or ""
+    port = parsed.port
+
+    if host in {"localhost", "127.0.0.1"}:
+        return True
+
+    return port == 11434
+
+
 def _build_headers(
-    captured_headers: dict[str, str], api_key: str, target_url: str
+    captured_headers: dict[str, str],
+    api_key: str,
+    target_url: str,
+    provider: str | None = None,
 ) -> dict[str, str]:
     """Build replay headers from captured headers, replacing auth."""
     headers = {**captured_headers}
     # Use the right auth header for the target
-    if "openrouter.ai" in target_url:
+    if _is_ollama_target(target_url, provider) and not api_key:
+        headers["x-api-key"] = "ollama"
+        headers.pop("Authorization", None)
+    elif "openrouter.ai" in target_url:
         headers["Authorization"] = f"Bearer {api_key}"
         headers.pop("x-api-key", None)
     else:
@@ -97,16 +119,19 @@ def _build_headers(
     return headers
 
 
-def _resolve_api_config(raw_dumps_dir: Path, request_index: int) -> tuple[str, dict[str, str]]:
+def _resolve_api_config(
+    raw_dumps_dir: Path, request_index: int
+) -> tuple[str, dict[str, str], str | None]:
     """Resolve target URL and captured headers for a request.
 
-    Returns (target_url, captured_headers).
+    Returns (target_url, captured_headers, provider).
     """
     import os
 
     hdr_data = _load_headers(raw_dumps_dir, request_index)
     target_url = hdr_data.get("target")
     captured_headers = hdr_data.get("headers", {})
+    provider = hdr_data.get("provider")
 
     if not target_url:
         base_url = os.environ.get("ANTHROPIC_BASE_URL", "https://api.anthropic.com")
@@ -116,14 +141,16 @@ def _resolve_api_config(raw_dumps_dir: Path, request_index: int) -> tuple[str, d
             "content-type": "application/json",
         }
 
-    return target_url, captured_headers
+    return target_url, captured_headers, provider
 
 
-def _resolve_api_key(target_url: str) -> str:
+def _resolve_api_key(target_url: str, provider: str | None = None) -> str:
     """Resolve the API key based on the target URL."""
     import os
 
-    if "openrouter.ai" in target_url:
+    if _is_ollama_target(target_url, provider):
+        return ""
+    elif "openrouter.ai" in target_url:
         api_key = os.environ.get("OPENROUTER_API_KEY", "")
         if not api_key:
             typer.echo("Error: OPENROUTER_API_KEY not set", err=True)
@@ -274,12 +301,14 @@ async def run_resample(
     raw_dumps_dir = session_dir / "raw_dumps"
 
     request_data = _load_request(raw_dumps_dir, request_index)
-    target_url, captured_headers = _resolve_api_config(raw_dumps_dir, request_index)
+    target_url, captured_headers, provider = _resolve_api_config(
+        raw_dumps_dir, request_index
+    )
 
     _prepare_request(request_data, model_override)
 
-    api_key = _resolve_api_key(target_url)
-    headers = _build_headers(captured_headers, api_key, target_url)
+    api_key = _resolve_api_key(target_url, provider)
+    headers = _build_headers(captured_headers, api_key, target_url, provider)
 
     # Output directory
     resample_dir = session_dir / "resamples" / f"request_{request_index:03d}"
@@ -370,15 +399,17 @@ async def run_variant_resample(
     raw_dumps_dir = session_dir / "raw_dumps"
 
     # Resolve API config from the original request headers
-    target_url, captured_headers = _resolve_api_config(raw_dumps_dir, request_index)
+    target_url, captured_headers, provider = _resolve_api_config(
+        raw_dumps_dir, request_index
+    )
 
     # Apply model override to the edited request
     if model_override:
         edited_request["model"] = model_override
     edited_request["stream"] = False
 
-    api_key = _resolve_api_key(target_url)
-    headers = _build_headers(captured_headers, api_key, target_url)
+    api_key = _resolve_api_key(target_url, provider)
+    headers = _build_headers(captured_headers, api_key, target_url, provider)
 
     # Create variant directory
     variant_id = _next_variant_id(session_dir, request_index)

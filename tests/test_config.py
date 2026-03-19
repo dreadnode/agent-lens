@@ -261,9 +261,42 @@ class TestBuildProviderEnv:
         env = build_provider_env(rc)
         assert env["CLAUDE_CODE_USE_VERTEX"] == "1"
 
+    def test_ollama_provider(self):
+        rc = RunConfig.model_validate(
+            _minimal(provider="ollama", model="kimi-k2.5:cloud")
+        )
+        env = build_provider_env(rc)
+        assert env["ANTHROPIC_BASE_URL"] == "http://localhost:11434"
+        assert env["ANTHROPIC_API_KEY"] == ""
+        assert env["ANTHROPIC_AUTH_TOKEN"] == "ollama"
+        assert env["CLAUDE_CODE_ATTRIBUTION_HEADER"] == "0"
+        assert env["ANTHROPIC_DEFAULT_OPUS_MODEL"] == "kimi-k2.5:cloud"
+        assert env["ANTHROPIC_DEFAULT_SONNET_MODEL"] == "kimi-k2.5:cloud"
+        assert env["ANTHROPIC_DEFAULT_HAIKU_MODEL"] == "kimi-k2.5:cloud"
+        assert env["CLAUDE_CODE_SUBAGENT_MODEL"] == "kimi-k2.5:cloud"
+
+    def test_ollama_custom_host(self, monkeypatch):
+        monkeypatch.setenv("OLLAMA_HOST", "http://gpu-box:11434")
+        rc = RunConfig.model_validate(
+            _minimal(provider="ollama", model="qwen3.5:cloud")
+        )
+        env = build_provider_env(rc)
+        assert env["ANTHROPIC_BASE_URL"] == "http://gpu-box:11434"
+
+    def test_ollama_base_url_override(self):
+        rc = RunConfig.model_validate(
+            _minimal(
+                provider="ollama",
+                model="kimi-k2.5:cloud",
+                base_url="http://custom:9999",
+            )
+        )
+        env = build_provider_env(rc)
+        assert env["ANTHROPIC_BASE_URL"] == "http://custom:9999"
+
     def test_claudecode_unset(self):
         """All providers should unset CLAUDECODE to allow nested launches."""
-        for provider in ["openrouter", "anthropic", "bedrock", "vertex"]:
+        for provider in ["openrouter", "anthropic", "bedrock", "vertex", "ollama"]:
             rc = RunConfig.model_validate(_minimal(provider=provider))
             env = build_provider_env(rc)
             assert env["CLAUDECODE"] == ""

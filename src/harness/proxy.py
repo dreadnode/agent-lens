@@ -14,6 +14,7 @@ from __future__ import annotations
 import hashlib
 import json
 import logging
+import os
 from datetime import datetime, timezone
 from pathlib import Path
 
@@ -80,6 +81,7 @@ class CaptureProxy:
 
     def __init__(self, raw_dump_count: int = 0) -> None:
         self._target_url: str = ""
+        self._provider: str | None = None
         self._log_path: Path | None = None
         self._site: web.TCPSite | None = None
         self._runner: web.AppRunner | None = None
@@ -91,9 +93,12 @@ class CaptureProxy:
         self._seen_system_hashes: set[str | None] = set()
         self._seen_tools_hashes: set[str | None] = set()
 
-    async def start(self, target_url: str, log_path: Path) -> int:
+    async def start(
+        self, target_url: str, log_path: Path, provider: str | None = None
+    ) -> int:
         """Start the proxy server. Returns the assigned port."""
         self._target_url = target_url.rstrip("/")
+        self._provider = provider
         self._log_path = log_path
         self._request_index = 0
         self._main_system_hash = None
@@ -202,8 +207,13 @@ class CaptureProxy:
                     hdr_path = raw_dir / f"request_{idx:03d}_headers.json"
                     with open(hdr_path, "w") as f:
                         json.dump(
-                            {"method": request.method, "path": request.path,
-                             "target": target, "headers": safe_headers},
+                            {
+                                "method": request.method,
+                                "path": request.path,
+                                "provider": self._provider,
+                                "target": target,
+                                "headers": safe_headers,
+                            },
                             f, indent=2,
                         )
                     # Response
@@ -331,6 +341,8 @@ def get_target_url(provider: str, base_url: str | None) -> str:
         return base_url
     if provider == "openrouter":
         return "https://openrouter.ai/api"
+    if provider == "ollama":
+        return os.environ.get("OLLAMA_HOST", "http://localhost:11434")
     # Default to Anthropic API for all other providers.
     # For bedrock/vertex, Claude Code may or may not route through
     # ANTHROPIC_BASE_URL — if it doesn't, the proxy will simply

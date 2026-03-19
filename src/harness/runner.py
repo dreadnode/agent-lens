@@ -159,7 +159,9 @@ async def run_session(
         target_url = get_target_url(run_config.provider, run_config.base_url)
         proxy = CaptureProxy(raw_dump_count=9999)
         port = await proxy.start(
-            target_url, session_dir / "api_captures.jsonl"
+            target_url,
+            session_dir / "api_captures.jsonl",
+            provider=run_config.provider,
         )
         provider_env["ANTHROPIC_BASE_URL"] = f"http://127.0.0.1:{port}"
         options.env = provider_env

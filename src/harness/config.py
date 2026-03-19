@@ -150,5 +150,17 @@ def build_provider_env(config: RunConfig) -> dict[str, str]:
         env["CLAUDE_CODE_USE_BEDROCK"] = "1"
     elif config.provider == "vertex":
         env["CLAUDE_CODE_USE_VERTEX"] = "1"
+    elif config.provider == "ollama":
+        ollama_url = config.base_url or os.environ.get(
+            "OLLAMA_HOST", "http://localhost:11434"
+        )
+        env["ANTHROPIC_BASE_URL"] = ollama_url
+        env["ANTHROPIC_API_KEY"] = ""
+        env["ANTHROPIC_AUTH_TOKEN"] = "ollama"
+        env["CLAUDE_CODE_ATTRIBUTION_HEADER"] = "0"
+        env["ANTHROPIC_DEFAULT_OPUS_MODEL"] = config.model
+        env["ANTHROPIC_DEFAULT_SONNET_MODEL"] = config.model
+        env["ANTHROPIC_DEFAULT_HAIKU_MODEL"] = config.model
+        env["CLAUDE_CODE_SUBAGENT_MODEL"] = config.model
 
     return env

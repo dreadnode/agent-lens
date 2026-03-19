@@ -60,6 +60,7 @@ class RunConfig(BaseModel):
     model: str
     provider: str = "anthropic"
     base_url: str | None = None
+    cli_path: str | None = None
 
     # working directory
     work_dir: str

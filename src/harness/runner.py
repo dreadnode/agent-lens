@@ -126,6 +126,7 @@ async def run_session(
         permission_mode=run_config.permission_mode,
         cwd=cwd,
         model=run_config.model,
+        cli_path=run_config.cli_path,
         env=provider_env,
         max_budget_usd=run_config.max_budget_usd,
         setting_sources=setting_sources,

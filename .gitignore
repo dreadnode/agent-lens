@@ -1,7 +1,7 @@
-runs/
-runs_old/
-repos/
-experiments/
+/runs/
+/runs_old/
+/repos/
+/experiments/
 __pycache__/
 *.pyc
 .venv/
